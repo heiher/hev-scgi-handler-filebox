@@ -230,11 +230,14 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 		exists = g_file_query_exists (file, NULL);
 		if (exists) {
 			if (G_FILE_TYPE_REGULAR == g_file_query_file_type (file, G_FILE_QUERY_INFO_NONE, NULL)) {
-				GFileInfo *file_info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_SIZE,
+				gchar *mime_type = NULL;
+				GFileInfo *file_info = g_file_query_info (file,
+							G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE","G_FILE_ATTRIBUTE_STANDARD_SIZE,
 							G_FILE_QUERY_INFO_NONE, NULL, NULL);
+				mime_type = g_content_type_get_mime_type (g_file_info_get_content_type (file_info));
 				g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("200 OK"));
 				g_hash_table_insert (res_hash_table, g_strdup ("Content-Type"),
-							g_strdup ("application/octet-stream"));
+							g_strdup (mime_type ? mime_type : "application/octet-stream"));
 				g_hash_table_insert (res_hash_table, g_strdup ("Content-Length"),
 							g_strdup_printf ("%lu", g_file_info_get_size (file_info)));
 				g_object_unref (file_info);
