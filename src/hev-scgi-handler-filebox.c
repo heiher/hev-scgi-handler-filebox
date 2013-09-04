@@ -11,6 +11,7 @@
 #include <hev-scgi-1.0.h>
 
 #include "hev-scgi-handler-filebox.h"
+#include "hev-filebox-downloader.h"
 
 #define HEV_SCGI_HANDLER_FILEBOX_NAME		"HevSCGIHandlerFilebox"
 #define HEV_SCGI_HANDLER_FILEBOX_VERSION	"0.0.1"
@@ -33,9 +34,15 @@ struct _HevSCGIHandlerFileboxPrivate
 	GKeyFile *config;
 	gchar *alias;
 	gchar *pattern;
+
+	GObject *downloader;
 };
 
 static void hev_scgi_handler_iface_init(HevSCGIHandlerInterface * iface);
+
+static void hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task);
+static void hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_task);
+static void filebox_downloader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED(HevSCGIHandlerFilebox, hev_scgi_handler_filebox, G_TYPE_OBJECT, 0,
 			G_IMPLEMENT_INTERFACE_DYNAMIC(HEV_TYPE_SCGI_HANDLER, hev_scgi_handler_iface_init));
@@ -53,7 +60,7 @@ static const gchar * hev_scgi_handler_filebox_get_alias(HevSCGIHandler *handler)
 static const gchar * hev_scgi_handler_filebox_get_name(HevSCGIHandler *handler);
 static const gchar * hev_scgi_handler_filebox_get_version(HevSCGIHandler *handler);
 static const gchar * hev_scgi_handler_filebox_get_pattern(HevSCGIHandler *handler);
-static void hev_scgi_handler_filebox_handle(HevSCGIHandler *self, GObject *scgi_task);
+static void hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task);
 
 static void
 hev_scgi_handler_filebox_dispose(GObject *obj)
@@ -62,6 +69,11 @@ hev_scgi_handler_filebox_dispose(GObject *obj)
 	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	if (priv->downloader) {
+		g_object_unref (priv->downloader);
+		priv->downloader = NULL;
+	}
 
 	G_OBJECT_CLASS(hev_scgi_handler_filebox_parent_class)->dispose(obj);
 }
@@ -75,7 +87,7 @@ hev_scgi_handler_filebox_finalize(GObject *obj)
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	if(priv->config) {
-		g_key_file_free(priv->config);
+		g_key_file_unref (priv->config);
 		priv->config = NULL;
 	}
 
@@ -196,6 +208,8 @@ hev_scgi_handler_filebox_init(HevSCGIHandlerFilebox *self)
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	priv->config = NULL;
+
+	priv->downloader = NULL;
 }
 
 static const gchar *
@@ -245,8 +259,58 @@ hev_scgi_handler_filebox_get_pattern(HevSCGIHandler *handler)
 }
 
 static void
-hev_scgi_handler_filebox_handle(HevSCGIHandler *self, GObject *scgi_task)
+hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task)
+{
+	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
+	GObject *request = NULL;
+	GHashTable *req_hash_table = NULL;
+	const gchar *request_uri = NULL;
+	gchar *str, pattern[256];
+
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
+	req_hash_table = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
+	request_uri = g_hash_table_lookup (req_hash_table, "REQUEST_URI");
+
+	/* pattern */
+	str = g_key_file_get_string (priv->config, "Module", "BaseURI", NULL);
+	g_snprintf (pattern, 256, "^%supload$", str);
+	g_free (str);
+
+	if (g_regex_match_simple (pattern, request_uri, 0, 0)) { /* uploader */
+		hev_scgi_handler_filebox_handle_upload (self, scgi_task);
+	} else { /* downloader */
+		hev_scgi_handler_filebox_handle_download (self, scgi_task);
+	}
+}
+
+static void
+hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task)
 {
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+}
+
+static void
+hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_task)
+{
+	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
+
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	if (!priv->downloader)
+	  priv->downloader = hev_filebox_downloader_new (priv->config);
+
+	hev_filebox_downloader_handle_async (HEV_FILEBOX_DOWNLOADER (priv->downloader),
+				scgi_task, filebox_downloader_handle_handler, NULL);
+}
+
+static void
+filebox_downloader_handle_handler (GObject *source_object,
+			GAsyncResult *res, gpointer user_data)
+{
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	hev_filebox_downloader_handle_finish (HEV_FILEBOX_DOWNLOADER (source_object), res, NULL);
 }
 
