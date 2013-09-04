@@ -228,12 +228,19 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 
 		exists = g_file_query_exists (file, NULL);
 		if (exists) {
-			GFileInfo *file_info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_SIZE,
-						G_FILE_QUERY_INFO_NONE, NULL, NULL);
-			g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("200 OK"));
-			g_hash_table_insert (res_hash_table, g_strdup ("Content-Type"), g_strdup ("application/octet-stream"));
-			g_hash_table_insert (res_hash_table, g_strdup ("Content-Length"), g_strdup_printf ("%lu", g_file_info_get_size (file_info)));
-			g_object_unref (file_info);
+			if (G_FILE_TYPE_REGULAR == g_file_query_file_type (file, G_FILE_QUERY_INFO_NONE, NULL)) {
+				GFileInfo *file_info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_SIZE,
+							G_FILE_QUERY_INFO_NONE, NULL, NULL);
+				g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("200 OK"));
+				g_hash_table_insert (res_hash_table, g_strdup ("Content-Type"),
+							g_strdup ("application/octet-stream"));
+				g_hash_table_insert (res_hash_table, g_strdup ("Content-Length"),
+							g_strdup_printf ("%lu", g_file_info_get_size (file_info)));
+				g_object_unref (file_info);
+			} else {
+				g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("403 Forbidden"));
+				exists = FALSE;
+			}
 		} else {
 			g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("404 Not Found"));
 		}
@@ -272,7 +279,8 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
 
 		fp_file = g_file_new_for_path (fp_path);
-		enumerator = g_file_enumerate_children (fp_file, G_FILE_ATTRIBUTE_STANDARD_NAME,
+		enumerator = g_file_enumerate_children (fp_file,
+					G_FILE_ATTRIBUTE_STANDARD_NAME","G_FILE_ATTRIBUTE_STANDARD_TYPE,
 					G_FILE_QUERY_INFO_NONE, NULL, NULL);
 		while (file_info = g_file_enumerator_next_file (enumerator, NULL, NULL)) {
 			if (G_FILE_TYPE_REGULAR == g_file_info_get_file_type (file_info)) {
