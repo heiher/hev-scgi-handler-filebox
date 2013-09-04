@@ -171,6 +171,7 @@ hev_filebox_downloader_handle_async (HevFileboxDownloader *self, GObject *scgi_t
 	task = g_task_new (self, NULL, callback, user_data);
 	g_task_set_task_data (task, g_object_ref (scgi_task), (GDestroyNotify) g_object_unref);
 	g_task_run_in_thread (task, filebox_downloader_handle_task_handler);
+	g_object_unref (task);
 }
 
 gboolean
@@ -314,6 +315,5 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 	g_free (fp_path);
 
 	g_task_return_boolean (task, TRUE);
-	g_object_unref (task);
 }
 
