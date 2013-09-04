@@ -256,11 +256,16 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 
 				len = g_input_stream_read (G_INPUT_STREAM (istream),
 							buffer, 8192, NULL, NULL);
+				if (-1 == len)
+				  break;
+
 				do {
 					gssize ret = g_output_stream_write (output_stream,
 								buffer + i, len - i, NULL, NULL);
-					if (-1 == ret)
-					  break;
+					if (-1 == ret) {
+						len = -1;
+						break;
+					}
 					i += ret;
 				} while (i < len);
 			} while (0 < len);
@@ -273,6 +278,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 		GFile *fp_file = NULL;
 		GFileEnumerator *enumerator = NULL;
 		GFileInfo *file_info = NULL;
+		gboolean error = FALSE;
 
 		g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("200 OK"));
 		g_hash_table_insert (res_hash_table, g_strdup ("Content-Type"), g_strdup ("text/plain"));
@@ -282,7 +288,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 		enumerator = g_file_enumerate_children (fp_file,
 					G_FILE_ATTRIBUTE_STANDARD_NAME","G_FILE_ATTRIBUTE_STANDARD_TYPE,
 					G_FILE_QUERY_INFO_NONE, NULL, NULL);
-		while (file_info = g_file_enumerator_next_file (enumerator, NULL, NULL)) {
+		while (!error && (file_info = g_file_enumerator_next_file (enumerator, NULL, NULL))) {
 			if (G_FILE_TYPE_REGULAR == g_file_info_get_file_type (file_info)) {
 				gchar buffer[1024];
 				gint i = 0, len;
@@ -291,8 +297,10 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 				do {
 					gssize ret = g_output_stream_write (output_stream,
 								buffer + i, len - i, NULL, NULL);
-					if (-1 == ret)
-					  break;
+					if (-1 == ret) {
+						error = TRUE;
+						break;
+					}
 					i += ret;
 				} while (i < len);
 			}
