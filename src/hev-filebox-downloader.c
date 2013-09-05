@@ -278,6 +278,26 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 				} while (i < len);
 			} while (0 < len);
 
+			/* check is one-off ? */
+			if (status) {
+				gchar *fm_path = NULL;
+				GKeyFile *meta = NULL;
+				
+				fm_path = g_key_file_get_string (priv->config, "Module", "FileMetaPath", NULL);
+				path = g_build_filename (fm_path, filename, NULL);
+				g_free (fm_path);
+
+				meta = g_key_file_new ();
+				if (g_key_file_load_from_file (meta, path, G_KEY_FILE_NONE, NULL)) {
+					if (g_key_file_get_boolean (meta, "Meta", "OneOff", NULL)) {
+						status = g_file_delete (file, NULL, NULL);
+						status = (0 == g_unlink (path)) ? TRUE : FALSE;
+					}
+				}
+				g_free (path);
+				g_key_file_unref (meta);
+			}
+
 			g_object_unref (istream);
 		}
 
