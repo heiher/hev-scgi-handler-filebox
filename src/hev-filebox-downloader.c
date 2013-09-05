@@ -219,7 +219,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 	regex = g_regex_new (pattern, 0, 0, NULL);
 	request_uri = g_hash_table_lookup (req_hash_table, "REQUEST_URI");
 	if (g_regex_match (regex, request_uri, 0, &match_info)) { /* down */
-		const gchar *filename = g_match_info_fetch (match_info, 1);
+		gchar *filename = g_match_info_fetch (match_info, 1);
 		gchar *path = NULL;
 		GFile *file = NULL;
 		gboolean exists;
@@ -301,6 +301,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 			}
 		}
 
+		g_free (filename);
 		g_object_unref (file);
 	} else { /* list */
 		GFile *fp_file = NULL;
@@ -336,7 +337,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 		g_object_unref (enumerator);
 		g_object_unref (fp_file);
 	}
-	g_match_info_free (match_info);
+	g_match_info_unref (match_info);
 	g_regex_unref (regex);
 	g_free (fp_path);
 
