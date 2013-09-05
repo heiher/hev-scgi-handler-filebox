@@ -278,6 +278,8 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 				} while (i < len);
 			} while (0 < len);
 
+			g_object_unref (istream);
+
 			/* check is one-off ? */
 			if (status) {
 				gchar *fm_path = NULL;
@@ -297,8 +299,6 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 				g_free (path);
 				g_key_file_unref (meta);
 			}
-
-			g_object_unref (istream);
 		}
 
 		g_object_unref (file);
