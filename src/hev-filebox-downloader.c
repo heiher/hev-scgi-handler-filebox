@@ -219,13 +219,15 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 	regex = g_regex_new (pattern, 0, 0, NULL);
 	request_uri = g_hash_table_lookup (req_hash_table, "REQUEST_URI");
 	if (g_regex_match (regex, request_uri, 0, &match_info)) { /* down */
-		gchar *filename = g_match_info_fetch (match_info, 1);
+		gchar *filename = NULL, *escaped = g_match_info_fetch (match_info, 1);
 		gchar *path = NULL;
 		GFile *file = NULL;
 		gboolean exists;
 
+		filename = g_uri_unescape_string (escaped, "");
 		path = g_build_filename (fp_path, filename, NULL);
 		file = g_file_new_for_path (path);
+		g_free (escaped);
 		g_free (path);
 
 		exists = g_file_query_exists (file, NULL);
