@@ -11,6 +11,7 @@
 #include <hev-scgi-1.0.h>
 
 #include "hev-scgi-handler-filebox.h"
+#include "hev-filebox-uploader.h"
 #include "hev-filebox-downloader.h"
 
 #define HEV_SCGI_HANDLER_FILEBOX_NAME		"HevSCGIHandlerFilebox"
@@ -35,12 +36,14 @@ struct _HevSCGIHandlerFileboxPrivate
 	gchar *alias;
 	gchar *pattern;
 
+	GObject *uploader;
 	GObject *downloader;
 };
 
 static void hev_scgi_handler_iface_init(HevSCGIHandlerInterface * iface);
 
 static void hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task);
+static void filebox_uploader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 static void hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_downloader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
@@ -69,6 +72,11 @@ hev_scgi_handler_filebox_dispose(GObject *obj)
 	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	if (priv->uploader) {
+		g_object_unref (priv->uploader);
+		priv->uploader = NULL;
+	}
 
 	if (priv->downloader) {
 		g_object_unref (priv->downloader);
@@ -288,7 +296,24 @@ hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task)
 static void
 hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task)
 {
+	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
+
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	if (!priv->uploader)
+	  priv->uploader = hev_filebox_uploader_new (priv->config);
+
+	hev_filebox_uploader_handle_async (HEV_FILEBOX_UPLOADER (priv->uploader),
+				scgi_task, filebox_uploader_handle_handler, NULL);
+}
+
+static void
+filebox_uploader_handle_handler (GObject *source_object,
+			GAsyncResult *res, gpointer user_data)
+{
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	hev_filebox_uploader_handle_finish (HEV_FILEBOX_UPLOADER (source_object), res, NULL);
 }
 
 static void
