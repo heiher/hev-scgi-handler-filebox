@@ -9,6 +9,7 @@
  */
 
 #include <hev-scgi-1.0.h>
+#include <string.h>
 
 #include "hev-filebox-downloader.h"
 
@@ -33,6 +34,10 @@ struct _HevFileboxDownloaderPrivate
 
 static void filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable);
+static gboolean filebox_downloader_handle_task_down (HevFileboxDownloader *self,
+			GObject *task, const gchar *fp_path, const gchar *filename);
+static gboolean filebox_downloader_handle_task_list (HevFileboxDownloader *self,
+			GObject *task, const gchar *fp_path);
 
 G_DEFINE_TYPE (HevFileboxDownloader, hev_filebox_downloader, G_TYPE_OBJECT);
 
@@ -194,155 +199,182 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 	GObject *scgi_task = task_data;
 	gboolean status = TRUE;
 	GObject *request = NULL;
-	GHashTable *req_hash_table = NULL;
-	GObject *response = NULL;
-	GOutputStream *output_stream = NULL;
-	GHashTable *res_hash_table = NULL;
-	const gchar *request_uri = NULL;
-	gchar *fp_path, *str, pattern[256];
+	GHashTable *req_htb = NULL;
+	gchar *fp_path, *base_uri, pattern[256];
 	GRegex *regex = NULL;
 	GMatchInfo *match_info = NULL;
+	const gchar *request_uri = NULL;
 
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
-	req_hash_table = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
-	response = hev_scgi_task_get_response (HEV_SCGI_TASK (scgi_task));
-	output_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
-	res_hash_table = hev_scgi_response_get_header_hash_table (HEV_SCGI_RESPONSE (response));
+	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
 
 	fp_path = g_key_file_get_string (priv->config, "Module", "FilePoolPath", NULL);
-	str = g_key_file_get_string (priv->config, "Module", "BaseURI", NULL);
-	g_snprintf (pattern, 256, "^%s(.+)$", str);
-	g_free (str);
+	base_uri = g_key_file_get_string (priv->config, "Module", "BaseURI", NULL);
+	g_snprintf (pattern, 256, "^%s(.+)$", base_uri);
+	g_free (base_uri);
 
 	regex = g_regex_new (pattern, 0, 0, NULL);
-	request_uri = g_hash_table_lookup (req_hash_table, "REQUEST_URI");
+	request_uri = g_hash_table_lookup (req_htb, "REQUEST_URI");
+
 	if (g_regex_match (regex, request_uri, 0, &match_info)) { /* down */
-		gchar *filename = NULL, *escaped = g_match_info_fetch (match_info, 1);
-		gchar *path = NULL;
-		GFile *file = NULL;
-		gboolean exists;
-
-		filename = g_uri_unescape_string (escaped, "");
-		path = g_build_filename (fp_path, filename, NULL);
-		file = g_file_new_for_path (path);
-		g_free (escaped);
-		g_free (path);
-
-		exists = g_file_query_exists (file, NULL);
-		if (exists) {
-			if (G_FILE_TYPE_REGULAR == g_file_query_file_type (file, G_FILE_QUERY_INFO_NONE, NULL)) {
-				gchar *mime_type = NULL;
-				GFileInfo *file_info = g_file_query_info (file,
-							G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE","G_FILE_ATTRIBUTE_STANDARD_SIZE,
-							G_FILE_QUERY_INFO_NONE, NULL, NULL);
-				mime_type = g_content_type_get_mime_type (g_file_info_get_content_type (file_info));
-				g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("200 OK"));
-				g_hash_table_insert (res_hash_table, g_strdup ("Content-Type"),
-							g_strdup (mime_type ? mime_type : "application/octet-stream"));
-				g_hash_table_insert (res_hash_table, g_strdup ("Content-Length"),
-							g_strdup_printf ("%lu", g_file_info_get_size (file_info)));
-				g_object_unref (file_info);
-			} else {
-				g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("403 Forbidden"));
-				exists = FALSE;
-			}
-		} else {
-			g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("404 Not Found"));
-		}
-		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
-
-		if (exists) {
-			gint len;
-			GFileInputStream *istream = g_file_read (file, NULL, NULL);
-
-			do {
-				gchar buffer[8192];
-				gint i = 0;
-
-				len = g_input_stream_read (G_INPUT_STREAM (istream),
-							buffer, 8192, NULL, NULL);
-				if (-1 == len) {
-					status = FALSE;
-					break;
-				}
-
-				do {
-					gssize ret = g_output_stream_write (output_stream,
-								buffer + i, len - i, NULL, NULL);
-					if (-1 == ret) {
-						status = FALSE;
-						len = -1;
-						break;
-					}
-					i += ret;
-				} while (i < len);
-			} while (0 < len);
-
-			g_object_unref (istream);
-
-			/* check is one-off ? */
-			if (status) {
-				gchar *fm_path = NULL;
-				GKeyFile *meta = NULL;
-				
-				fm_path = g_key_file_get_string (priv->config, "Module", "FileMetaPath", NULL);
-				path = g_build_filename (fm_path, filename, NULL);
-				g_free (fm_path);
-
-				meta = g_key_file_new ();
-				if (g_key_file_load_from_file (meta, path, G_KEY_FILE_NONE, NULL)) {
-					if (g_key_file_get_boolean (meta, "Meta", "OneOff", NULL)) {
-						status = g_file_delete (file, NULL, NULL);
-						status = (0 == g_unlink (path)) ? TRUE : FALSE;
-					}
-				}
-				g_free (path);
-				g_key_file_unref (meta);
-			}
-		}
-
+		gchar *filename = g_match_info_fetch (match_info, 1);
+		status = filebox_downloader_handle_task_down (self, scgi_task, fp_path, filename);
 		g_free (filename);
-		g_object_unref (file);
 	} else { /* list */
-		GFile *fp_file = NULL;
-		GFileEnumerator *enumerator = NULL;
-		GFileInfo *file_info = NULL;
-
-		g_hash_table_insert (res_hash_table, g_strdup ("Status"), g_strdup ("200 OK"));
-		g_hash_table_insert (res_hash_table, g_strdup ("Content-Type"), g_strdup ("text/plain"));
-		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
-
-		fp_file = g_file_new_for_path (fp_path);
-		enumerator = g_file_enumerate_children (fp_file,
-					G_FILE_ATTRIBUTE_STANDARD_NAME","G_FILE_ATTRIBUTE_STANDARD_TYPE,
-					G_FILE_QUERY_INFO_NONE, NULL, NULL);
-		while (status && (file_info = g_file_enumerator_next_file (enumerator, NULL, NULL))) {
-			if (G_FILE_TYPE_REGULAR == g_file_info_get_file_type (file_info)) {
-				gchar buffer[1024];
-				gint i = 0, len;
-
-				len = g_snprintf (buffer, 1024, "%s\r\n", g_file_info_get_name (file_info));
-				do {
-					gssize ret = g_output_stream_write (output_stream,
-								buffer + i, len - i, NULL, NULL);
-					if (-1 == ret) {
-						status = FALSE;
-						break;
-					}
-					i += ret;
-				} while (i < len);
-			}
-			g_object_unref (file_info);
-		}
-		g_object_unref (enumerator);
-		g_object_unref (fp_file);
+		status = filebox_downloader_handle_task_list (self, scgi_task, fp_path);
 	}
+
 	g_match_info_unref (match_info);
 	g_regex_unref (regex);
 	g_free (fp_path);
 
 	g_task_return_boolean (task, status);
+}
+
+static gboolean
+filebox_downloader_handle_task_down (HevFileboxDownloader *self,
+			GObject *task, const gchar *fp_path, const gchar *filename)
+{
+    HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
+	gboolean status = TRUE;
+	GObject *response = NULL;
+	GOutputStream *res_stream = NULL;
+	GHashTable *res_htb = NULL;
+	gchar *file_name = NULL, *path = NULL;
+	GFile *file = NULL;
+	gboolean exists = FALSE;
+
+    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	response = hev_scgi_task_get_response (HEV_SCGI_TASK (task));
+	res_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
+	res_htb = hev_scgi_response_get_header_hash_table (HEV_SCGI_RESPONSE (response));
+
+	file_name = g_uri_unescape_string (filename, "");
+	path = g_build_filename (fp_path, file_name, NULL);
+	file = g_file_new_for_path (path);
+	g_free (path);
+
+	/* query file exists and write response header */
+	exists = g_file_query_exists (file, NULL);
+	if (exists) {
+		if (G_FILE_TYPE_REGULAR == g_file_query_file_type (file, G_FILE_QUERY_INFO_NONE, NULL)) {
+			GFileInfo *file_info = g_file_query_info (file,
+						G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE","G_FILE_ATTRIBUTE_STANDARD_SIZE,
+						G_FILE_QUERY_INFO_NONE, NULL, NULL);
+			gchar *mime_type = g_content_type_get_mime_type (g_file_info_get_content_type (file_info));
+			g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
+			g_hash_table_insert (res_htb, g_strdup ("Content-Type"),
+						g_strdup (mime_type ? mime_type : "application/octet-stream"));
+			g_hash_table_insert (res_htb, g_strdup ("Content-Length"),
+						g_strdup_printf ("%lu", g_file_info_get_size (file_info)));
+			g_object_unref (file_info);
+		} else {
+			g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("403 Forbidden"));
+			exists = FALSE;
+		}
+	} else {
+		g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("404 Not Found"));
+	}
+	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+
+	if (exists) {
+		GFileInputStream *file_istream = g_file_read (file, NULL, NULL);
+
+		/* response file contents */
+		for (;;) {
+			guint8 buffer[8192];
+			gssize rsize = 0;
+
+			rsize = g_input_stream_read (G_INPUT_STREAM (file_istream),
+						buffer, 8192, NULL, NULL);
+			if (-1 == rsize) {
+				status = FALSE;
+				break;
+			} else if (0 == rsize) {
+				break;
+			}
+
+			if (!g_output_stream_write_all (res_stream,
+							buffer, rsize, NULL, NULL, NULL)) {
+				status = FALSE;
+				break;
+			}
+		}
+
+		g_object_unref (file_istream);
+
+		/* check is one-off ? */
+		if (status) {
+			gchar *fm_path = NULL;
+			GKeyFile *meta = NULL;
+			
+			fm_path = g_key_file_get_string (priv->config, "Module", "FileMetaPath", NULL);
+			path = g_build_filename (fm_path, file_name, NULL);
+			g_free (fm_path);
+
+			meta = g_key_file_new ();
+			if (g_key_file_load_from_file (meta, path, G_KEY_FILE_NONE, NULL)) {
+				if (g_key_file_get_boolean (meta, "Meta", "OneOff", NULL)) {
+					status = g_file_delete (file, NULL, NULL);
+					status = (0 == g_unlink (path)) ? TRUE : FALSE;
+				}
+			}
+			g_free (path);
+			g_key_file_unref (meta);
+		}
+	}
+
+	g_free (file_name);
+	g_object_unref (file);
+
+	return status;
+}
+
+static gboolean
+filebox_downloader_handle_task_list (HevFileboxDownloader *self,
+			GObject *task, const gchar *fp_path)
+{
+	gboolean status = TRUE;
+	GObject *response = NULL;
+	GOutputStream *res_stream = NULL;
+	GHashTable *res_htb = NULL;
+	GFile *file = NULL;
+	GFileEnumerator *file_enumerator = NULL;
+	GFileInfo *file_info = NULL;
+
+    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	response = hev_scgi_task_get_response (HEV_SCGI_TASK (task));
+	res_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
+	res_htb = hev_scgi_response_get_header_hash_table (HEV_SCGI_RESPONSE (response));
+
+	/* write response header */
+	g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
+	g_hash_table_insert (res_htb, g_strdup ("Content-Type"), g_strdup ("text/plain"));
+	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+
+	/* enumerate file pool */
+	file = g_file_new_for_path (fp_path);
+	file_enumerator = g_file_enumerate_children (file,
+				G_FILE_ATTRIBUTE_STANDARD_NAME","G_FILE_ATTRIBUTE_STANDARD_TYPE,
+				G_FILE_QUERY_INFO_NONE, NULL, NULL);
+	while (status && (file_info = g_file_enumerator_next_file (file_enumerator, NULL, NULL))) {
+		if (G_FILE_TYPE_REGULAR == g_file_info_get_file_type (file_info)) {
+			const gchar *name = g_file_info_get_name (file_info);
+			gboolean a = g_output_stream_write_all (res_stream,
+						name, strlen (name), NULL, NULL, NULL);
+			gboolean b = g_output_stream_write_all (res_stream,
+						"\r\n", 2, NULL, NULL, NULL);
+			if (!a || !b) status = FALSE;
+		}
+		g_object_unref (file_info);
+	}
+	g_object_unref (file_enumerator);
+	g_object_unref (file);
+
+	return status;
 }
 
