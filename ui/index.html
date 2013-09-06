@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+		<title>File Box</title>
+		<script type='text/javascript' src='./js/jquery.min.js'></script>
+		<script type='text/javascript' src='./js/jquery.form.min.js'></script>
+	</head>
+	<body>
+		<center>
+			<h2>File Box v1.0</h2><hr />
+			<form id='file-upload' method='POST' enctype='multipart/form-data' action='/fb/upload'>
+				文件1：<input type='file' name='file1' /><br />
+				文件2：<input type='file' name='file2' /><br />
+				文件3：<input type='file' name='file3' /><br />
+				文件4：<input type='file' name='file4' /><br />
+				文件5：<input type='file' name='file5' /><br /><br />
+				有效期：
+				<input type='radio' name='duration' value='1' checked='true' />1天
+				<input type='radio' name='duration' value='2' />2天
+				<input type='radio' name='duration' value='3' />3天
+				<input type='radio' name='duration' value='7' />7天
+				<input type='checkbox' name='one-off' />“下后即删”<br/><br/>
+				<input type='submit' id='submit' value='开始上传' />
+			</form>
+			<hr />
+			<div id='file-list'>
+			</div>
+			<hr />
+			&#169;2013 <a href='http://www.lemote.com'>Lemote</a> Inc.
+		</center>
+
+		<script type='text/javascript'>
+			function get_base_url () {
+				return window.location.protocol + '//' +
+					window.location.hostname;
+			}
+
+			function load_file_list () {
+				$.ajax({ url: '/fb', type: 'GET',
+					success: function (data) {
+						var content = '';
+						var files = data.split ('\r\n');
+
+						content += "<table border='0'>";
+						for (var i=0; i<files.length; i++) {
+							if ('' == files[i]) continue;
+							content += "<tr>";
+							content += "<th align='left'>" + files[i] + "</th>";
+							content += "<th> ---> </th>";
+							content += "<th align='left'><a href='/fb/" + files[i] + "'>" +
+								get_base_url () + "/fb/" + files[i] + "</a></th>";
+							content += "</tr>";
+						}
+						content += "</table>";
+
+						$('#file-list').html (content);
+
+						setTimeout (load_file_list, 2000);
+					}});
+			}
+
+			load_file_list ();
+
+			$('#file-upload').submit (function () {
+				$(this).ajaxSubmit ({
+					resetForm: true,
+					beforeSend: function () {
+						$('#submit').prop ('disabled', true);
+						$('#submit').val ('正在上传 0%...');
+					},
+					uploadProgress: function(event, position, total, percent) {
+						$('#submit').val ('正在上传 ' + percent + '%...');
+					},
+					success: function () {
+						$('#submit').val ('正在上传 100%...');
+					},
+					complete: function (xhr) {
+						$('#submit').prop ('disabled', false);
+						$('#submit').val ('开始上传');
+						alert (xhr.statusText);
+					}
+				});
+
+				return false;
+			});
+		</script>
+	</body>
+</html>
+
