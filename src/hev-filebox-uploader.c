@@ -34,12 +34,14 @@ struct _HevFileboxUploaderPrivate
 
 static void filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable);
+static void file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data);
 static GFile * filebox_uploader_handle_task_create_tmp (HevFileboxUploader *self,
 			GObject *task, GInputStream *req_stream, GHashTable *req_htb,
 			GHashTable *res_htb, const gchar *ft_path, gsize size);
 static GPtrArray * filebox_uploader_handle_task_split_tmp (HevFileboxUploader *self,
 			GObject *task, GMappedFile *mapped_file, GHashTable *res_htb,
-			const gchar *fp_path, const gchar *fm_path, const gchar *boundary);
+			const gchar *fp_path, const gchar *fm_path, const gchar *boundary,
+			gchar **duration, gchar **one_off);
 static void file_ptr_array_foreach_delete_handler (gpointer data, gpointer user_data);
 static GFile * filebox_uploader_handle_task_create_file (HevFileboxUploader *self,
 			GHashTable *res_htb, const gchar *fp_path, const gchar *fm_path,
@@ -258,16 +260,24 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 		g_free (path);
 		if (mapped_file) {
 			GPtrArray *files = NULL;
+			gchar *duration = NULL, *one_off = NULL;
 
 			/* split files from tmp file */
 			files = filebox_uploader_handle_task_split_tmp (self, scgi_task,
-						mapped_file, res_htb, fp_path, fm_path, boundary);
+						mapped_file, res_htb, fp_path, fm_path, boundary,
+						&duration, &one_off);
 			if (files) {
-				// write meta files
-
+				/* write meta files */
+				g_object_set_data (scgi_task, "duration", duration);
+				g_object_set_data (scgi_task, "one-off", one_off);
+				g_ptr_array_foreach (files,
+							file_ptr_array_foreach_write_meta_handler,
+							scgi_task);
 				g_ptr_array_unref (files);
 			}
 			
+			g_free (duration);
+			g_free (one_off);
 			g_mapped_file_unref (mapped_file);
 		}
 		
@@ -285,6 +295,64 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
 
 	g_task_return_boolean (task, status);
+}
+
+static void
+file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
+{
+	GFile *file = G_FILE (data), *meta_file = NULL;
+	GObject *scgi_task = G_OBJECT (user_data);
+	GObject *request = NULL;
+	GHashTable *req_htb = NULL;
+	gchar *duration = NULL, *one_off = NULL;
+	GKeyFile *meta = NULL;
+	GDateTime *crt_time = NULL;
+	GFileOutputStream *file_ostream = NULL;
+
+    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
+	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
+
+	duration = g_object_get_data (scgi_task, "duration");
+	one_off = g_object_get_data (scgi_task, "one-off");
+
+	meta_file = g_object_get_data (G_OBJECT (file), "meta");
+	g_file_delete (meta_file, NULL, NULL);
+	meta = g_key_file_new ();
+
+	/* set meta contents */
+	crt_time = g_date_time_new_now_utc ();
+	g_key_file_set_int64 (meta, "Meta", "CrtDate",
+				g_date_time_to_unix (crt_time));
+	if (duration) {
+		GDateTime *exp_time = NULL;
+		guint64 dur = g_ascii_strtoull (duration, NULL, 10);
+		if ((0 >= dur) || (7 < dur))
+		  dur = 1;
+		exp_time = g_date_time_add_days (crt_time, dur);
+		g_key_file_set_int64 (meta, "Meta", "ExpDate",
+					g_date_time_to_unix (exp_time));
+		g_date_time_unref (exp_time);
+	}
+	g_date_time_unref (crt_time);
+	g_key_file_set_boolean (meta, "Meta", "OneOff", one_off ? TRUE : FALSE);
+	g_key_file_set_string (meta, "Meta", "IP",
+				g_hash_table_lookup (req_htb, "REMOTE_ADDR"));
+
+	/* create and write to meta file */
+	file_ostream = g_file_create (meta_file, G_FILE_CREATE_PRIVATE, NULL, NULL);
+	if (file_ostream) {
+		gchar *data = NULL;
+		gsize length = 0;
+		data = g_key_file_to_data (meta, &length, NULL);
+		g_output_stream_write_all (G_OUTPUT_STREAM (file_ostream),
+					data, length, NULL, NULL, NULL);
+		g_free (data);
+		g_object_unref (file_ostream);
+	}
+
+	g_key_file_unref (meta);
 }
 
 static GFile *
@@ -352,7 +420,8 @@ filebox_uploader_handle_task_create_tmp (HevFileboxUploader *self,
 static GPtrArray *
 filebox_uploader_handle_task_split_tmp (HevFileboxUploader *self,
 			GObject *task, GMappedFile *mapped_file, GHashTable *res_htb,
-			const gchar *fp_path, const gchar *fm_path, const gchar *boundary)
+			const gchar *fp_path, const gchar *fm_path, const gchar *boundary,
+			gchar **duration, gchar **one_off)
 {
 	GPtrArray *files = NULL;
 	gchar *contents = NULL, *pi = NULL, *ps = NULL, *pe = NULL;
@@ -401,22 +470,31 @@ filebox_uploader_handle_task_split_tmp (HevFileboxUploader *self,
 			/* check part type (file or attributes) */
 			filename = g_strstr_len (pi, ps - pi, "filename=");
 			if (filename) { /* is a file */
-				GFile *file = NULL;
+				if (!g_str_has_prefix (filename, "filename=\"\"")) {
+					GFile *file = NULL;
 
-				file = filebox_uploader_handle_task_create_file (self,
-							res_htb, fp_path, fm_path, filename,
-							ps, pe - ps);
-				if (!file) {
-					g_ptr_array_foreach (files,
-								file_ptr_array_foreach_delete_handler,
-								NULL);
-					g_ptr_array_unref (files);
-					files = NULL;
-					break;
+					file = filebox_uploader_handle_task_create_file (self,
+								res_htb, fp_path, fm_path, filename,
+								ps, pe - ps);
+					if (!file) {
+						g_ptr_array_foreach (files,
+									file_ptr_array_foreach_delete_handler,
+									NULL);
+						g_ptr_array_unref (files);
+						files = NULL;
+						break;
+					}
+					g_ptr_array_add (files, file);
 				}
-				g_ptr_array_add (files, file);
 			} else { /* other attributes */
-				// attribute
+				gchar *match = NULL;
+
+				match = g_strstr_len (pi, ps - pi, "name=\"duration\"");
+				if (match)
+				  *duration = g_strndup (ps, pe - ps);
+				match = g_strstr_len (pi, ps - pi, "name=\"one-off\"");
+				if (match)
+				  *one_off = g_strndup (ps, pe - ps);
 			}
 
 			/* find next part init */
