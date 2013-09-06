@@ -444,7 +444,7 @@ filebox_uploader_handle_task_create_file (HevFileboxUploader *self,
 			GHashTable *res_htb, const gchar *fp_path, const gchar *fm_path,
 			const gchar *filename, const gchar *contents, gsize length)
 {
-	GFile *file = NULL;
+	GFile *file = NULL, *meta = NULL;
 	GRegex *regex = NULL;
 	GMatchInfo *match_info = NULL;
 	gchar *file_name = NULL, *file_path = NULL, *meta_path = NULL;
@@ -490,13 +490,27 @@ filebox_uploader_handle_task_create_file (HevFileboxUploader *self,
 		g_hash_table_insert (res_htb, g_strdup ("Status"),
 					g_strdup ("500 Internal Server Error"));
 		g_object_unref (file_ostream);
+		g_file_delete (file, NULL, NULL);
 		g_object_unref (file);
 		g_free (meta_path);
 		return NULL;
 	}
 
-	g_object_unref (file_ostream);
+	/* new meta file */
+	meta = g_file_new_for_path (meta_path);
 	g_free (meta_path);
+	if (!meta) {
+		g_hash_table_insert (res_htb, g_strdup ("Status"),
+					g_strdup ("500 Internal Server Error"));
+		g_object_unref (file_ostream);
+		g_file_delete (file, NULL, NULL);
+		g_object_unref (file);
+		return NULL;
+	}
+	g_object_set_data_full (G_OBJECT (file), "meta", meta,
+				(GDestroyNotify) g_object_unref);
+
+	g_object_unref (file_ostream);
 
 	return file;
 }
