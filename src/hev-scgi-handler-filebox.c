@@ -13,6 +13,7 @@
 #include "hev-scgi-handler-filebox.h"
 #include "hev-filebox-uploader.h"
 #include "hev-filebox-downloader.h"
+#include "hev-filebox-cleaner.h"
 
 #define HEV_SCGI_HANDLER_FILEBOX_NAME		"HevSCGIHandlerFilebox"
 #define HEV_SCGI_HANDLER_FILEBOX_VERSION	"0.0.1"
@@ -38,6 +39,7 @@ struct _HevSCGIHandlerFileboxPrivate
 
 	GObject *uploader;
 	GObject *downloader;
+	GObject *cleaner;
 };
 
 static void hev_scgi_handler_iface_init(HevSCGIHandlerInterface * iface);
@@ -81,6 +83,11 @@ hev_scgi_handler_filebox_dispose(GObject *obj)
 	if (priv->downloader) {
 		g_object_unref (priv->downloader);
 		priv->downloader = NULL;
+	}
+
+	if (priv->cleaner) {
+		g_object_unref (priv->cleaner);
+		priv->cleaner = NULL;
 	}
 
 	G_OBJECT_CLASS(hev_scgi_handler_filebox_parent_class)->dispose(obj);
@@ -129,7 +136,14 @@ hev_scgi_handler_filebox_constructor(GType type, guint n, GObjectConstructParam 
 static void
 hev_scgi_handler_filebox_constructed(GObject *obj)
 {
+	HevSCGIHandlerFilebox *self = HEV_SCGI_HANDLER_FILEBOX(obj);
+	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
+
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	priv->uploader = hev_filebox_uploader_new (priv->config);
+	priv->downloader = hev_filebox_downloader_new (priv->config);
+	priv->cleaner = hev_filebox_cleaner_new (priv->config);
 
 	G_OBJECT_CLASS(hev_scgi_handler_filebox_parent_class)->constructed(obj);
 }
@@ -217,7 +231,9 @@ hev_scgi_handler_filebox_init(HevSCGIHandlerFilebox *self)
 
 	priv->config = NULL;
 
+	priv->uploader = NULL;
 	priv->downloader = NULL;
+	priv->cleaner = NULL;
 }
 
 static const gchar *
@@ -300,9 +316,6 @@ hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-	if (!priv->uploader)
-	  priv->uploader = hev_filebox_uploader_new (priv->config);
-
 	hev_filebox_uploader_handle_async (HEV_FILEBOX_UPLOADER (priv->uploader),
 				scgi_task, filebox_uploader_handle_handler, NULL);
 }
@@ -322,9 +335,6 @@ hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_ta
 	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
-
-	if (!priv->downloader)
-	  priv->downloader = hev_filebox_downloader_new (priv->config);
 
 	hev_filebox_downloader_handle_async (HEV_FILEBOX_DOWNLOADER (priv->downloader),
 				scgi_task, filebox_downloader_handle_handler, NULL);
