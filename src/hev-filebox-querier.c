@@ -284,12 +284,13 @@ filebox_querier_handle_task_query_size (HevFileboxQuerier *self,
 				G_FILE_QUERY_INFO_NONE, NULL, NULL);
 	if (!file_info)
 	  g_hash_table_insert (res_htb, g_strdup ("Status"),
-				  g_strdup ("500 Internal Server Error"));
-	else
-	  size = g_strdup_printf ("Size: %"G_GINT64_FORMAT"\r\n",
-				  g_file_info_get_size (file_info));
+				  g_strdup ("404 Not Found"));
+	else {
+		size = g_strdup_printf ("Size: %"G_GINT64_FORMAT"\r\n",
+					g_file_info_get_size (file_info));
+		g_object_unref (file_info);
+	}
 
-	g_object_unref (file_info);
 	g_object_unref (file);
 
 	return size;
