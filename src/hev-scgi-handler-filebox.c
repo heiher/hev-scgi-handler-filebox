@@ -12,6 +12,7 @@
 
 #include "hev-scgi-handler-filebox.h"
 #include "hev-filebox-uploader.h"
+#include "hev-filebox-querier.h"
 #include "hev-filebox-downloader.h"
 #include "hev-filebox-cleaner.h"
 
@@ -38,6 +39,7 @@ struct _HevSCGIHandlerFileboxPrivate
 	gchar *pattern;
 
 	GObject *uploader;
+	GObject *querier;
 	GObject *downloader;
 	GObject *cleaner;
 };
@@ -46,6 +48,8 @@ static void hev_scgi_handler_iface_init(HevSCGIHandlerInterface * iface);
 
 static void hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_uploader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
+static void hev_scgi_handler_filebox_handle_query (HevSCGIHandler *self, GObject *scgi_task);
+static void filebox_querier_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 static void hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_downloader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
@@ -78,6 +82,11 @@ hev_scgi_handler_filebox_dispose(GObject *obj)
 	if (priv->uploader) {
 		g_object_unref (priv->uploader);
 		priv->uploader = NULL;
+	}
+
+	if (priv->querier) {
+		g_object_unref (priv->querier);
+		priv->querier = NULL;
 	}
 
 	if (priv->downloader) {
@@ -142,6 +151,7 @@ hev_scgi_handler_filebox_constructed(GObject *obj)
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	priv->uploader = hev_filebox_uploader_new (priv->config);
+	priv->querier = hev_filebox_querier_new (priv->config);
 	priv->downloader = hev_filebox_downloader_new (priv->config);
 	priv->cleaner = hev_filebox_cleaner_new (priv->config);
 
@@ -232,6 +242,7 @@ hev_scgi_handler_filebox_init(HevSCGIHandlerFilebox *self)
 	priv->config = NULL;
 
 	priv->uploader = NULL;
+	priv->querier = NULL;
 	priv->downloader = NULL;
 	priv->cleaner = NULL;
 }
@@ -289,7 +300,7 @@ hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task)
 	GObject *request = NULL;
 	GHashTable *req_hash_table = NULL;
 	const gchar *request_uri = NULL;
-	gchar *str, pattern[256];
+	gchar *str, pat_upload[256], pat_query[256];
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
@@ -297,13 +308,16 @@ hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task)
 	req_hash_table = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
 	request_uri = g_hash_table_lookup (req_hash_table, "REQUEST_URI");
 
-	/* pattern */
+	/* patterns */
 	str = g_key_file_get_string (priv->config, "Module", "BaseURI", NULL);
-	g_snprintf (pattern, 256, "^%supload$", str);
+	g_snprintf (pat_upload, 256, "^%supload$", str);
+	g_snprintf (pat_query, 256, "^%squery\\?(.+)$", str);
 	g_free (str);
 
-	if (g_regex_match_simple (pattern, request_uri, 0, 0)) { /* uploader */
+	if (g_regex_match_simple (pat_upload, request_uri, 0, 0)) { /* uploader */
 		hev_scgi_handler_filebox_handle_upload (self, scgi_task);
+	} else if (g_regex_match_simple (pat_query, request_uri, 0, 0)) { /* query */
+		hev_scgi_handler_filebox_handle_query (self, scgi_task);
 	} else { /* downloader */
 		hev_scgi_handler_filebox_handle_download (self, scgi_task);
 	}
@@ -327,6 +341,26 @@ filebox_uploader_handle_handler (GObject *source_object,
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	hev_filebox_uploader_handle_finish (HEV_FILEBOX_UPLOADER (source_object), res, NULL);
+}
+
+static void
+hev_scgi_handler_filebox_handle_query (HevSCGIHandler *self, GObject *scgi_task)
+{
+	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
+
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	hev_filebox_querier_handle_async (HEV_FILEBOX_QUERIER (priv->querier),
+				scgi_task, filebox_querier_handle_handler, NULL);
+}
+
+static void
+filebox_querier_handle_handler (GObject *source_object,
+			GAsyncResult *res, gpointer user_data)
+{
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	hev_filebox_querier_handle_finish (HEV_FILEBOX_QUERIER (source_object), res, NULL);
 }
 
 static void
