@@ -525,7 +525,7 @@ filebox_uploader_handle_task_create_file (HevFileboxUploader *self,
 	GFile *file = NULL, *meta = NULL;
 	GRegex *regex = NULL;
 	GMatchInfo *match_info = NULL;
-	gchar *file_name = NULL, *file_path = NULL, *meta_path = NULL;
+	gchar *file_name = NULL, *basename = NULL, *file_path = NULL, *meta_path = NULL;
 	GFileOutputStream *file_ostream = NULL;
 
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
@@ -538,9 +538,11 @@ filebox_uploader_handle_task_create_file (HevFileboxUploader *self,
 	g_regex_unref (regex);
 
 	/* build file path and meta path */
-	file_path = g_build_filename (fp_path, file_name, NULL);
-	meta_path = g_build_filename (fm_path, file_name, NULL);
+	basename = g_path_get_basename (file_name);
 	g_free (file_name);
+	file_path = g_build_filename (fp_path, basename, NULL);
+	meta_path = g_build_filename (fm_path, basename, NULL);
+	g_free (basename);
 
 	/* new file */
 	file = g_file_new_for_path (file_path);

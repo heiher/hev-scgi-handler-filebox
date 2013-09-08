@@ -227,19 +227,22 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 
 	if (g_regex_match (regex, request_uri, 0, &match_info)) {
 		gchar *file_name = g_match_info_fetch (match_info, 1);
-		gchar *filename = NULL, *size = NULL, *meta = NULL;
+		gchar *filename = NULL, *basename = NULL, *size = NULL, *meta = NULL;
 
 		filename = g_uri_unescape_string (file_name, "");
+		g_free (file_name);
+		basename = g_path_get_basename (filename);
+		g_free (filename);
 		/* query file size */
-		size = filebox_querier_handle_task_query_size (self, res_htb, fp_path, filename);
+		size = filebox_querier_handle_task_query_size (self, res_htb, fp_path, basename);
 		/* query file meta */
-		meta = filebox_querier_handle_task_query_meta (self, res_htb, fm_path, filename);
+		meta = filebox_querier_handle_task_query_meta (self, res_htb, fm_path, basename);
 		/* write attributes */
 		if (size || meta) {
 			g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
 			hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
 			g_output_stream_write_all (res_stream, "File: ", 6, NULL, NULL, NULL);
-			g_output_stream_write_all (res_stream, filename, strlen (filename), NULL, NULL, NULL);
+			g_output_stream_write_all (res_stream, basename, strlen (basename), NULL, NULL, NULL);
 			g_output_stream_write_all (res_stream, "\r\n", 2, NULL, NULL, NULL);
 			if (size)
 			  g_output_stream_write_all (res_stream, size, strlen (size), NULL, NULL, NULL);
@@ -249,8 +252,7 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 			hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
 		}
 
-		g_free (file_name);
-		g_free (filename);
+		g_free (basename);
 		g_free (size);
 		g_free (meta);
 	} else {

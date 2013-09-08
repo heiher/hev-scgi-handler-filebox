@@ -242,7 +242,7 @@ filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 	GObject *response = NULL;
 	GOutputStream *res_stream = NULL;
 	GHashTable *res_htb = NULL;
-	gchar *file_name = NULL, *path = NULL;
+	gchar *file_name = NULL, *basename = NULL, *path = NULL;
 	GFile *file = NULL;
 	gboolean exists = FALSE;
 
@@ -253,7 +253,9 @@ filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 	res_htb = hev_scgi_response_get_header_hash_table (HEV_SCGI_RESPONSE (response));
 
 	file_name = g_uri_unescape_string (filename, "");
-	path = g_build_filename (fp_path, file_name, NULL);
+	basename = g_path_get_basename (file_name);
+	g_free (file_name);
+	path = g_build_filename (fp_path, basename, NULL);
 	file = g_file_new_for_path (path);
 	g_free (path);
 
@@ -312,7 +314,7 @@ filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 			GKeyFile *meta = NULL;
 			
 			fm_path = g_key_file_get_string (priv->config, "Module", "FileMetaPath", NULL);
-			path = g_build_filename (fm_path, file_name, NULL);
+			path = g_build_filename (fm_path, basename, NULL);
 			g_free (fm_path);
 
 			meta = g_key_file_new ();
@@ -327,7 +329,7 @@ filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 		}
 	}
 
-	g_free (file_name);
+	g_free (basename);
 	g_object_unref (file);
 
 	return status;
