@@ -8,7 +8,7 @@
 	</head>
 	<body>
 		<center>
-			<h2>File Box v1.1</h2><hr />
+			<h2>File Box</h2><hr />
 			<form id='file-upload' method='POST' enctype='multipart/form-data' action='/fb/upload'>
 				文件1：<input type='file' name='file1' /><br />
 				文件2：<input type='file' name='file2' /><br />
@@ -20,14 +20,15 @@
 				<input type='radio' name='duration' value='2' />2天
 				<input type='radio' name='duration' value='3' />3天
 				<input type='radio' name='duration' value='7' />7天
-				<input type='checkbox' name='one-off' />“下后即删”<br/><br/>
+				<input type='checkbox' name='one-off' />“下后即删”<br/>
+				(单次上传总大小限制 1GB)<br />
 				<input type='submit' id='submit' value='开始上传' />
 			</form>
 			<hr />
 			<div id='file-list'>
 			</div>
 			<hr />
-			&#169;2013 <a href='http://www.lemote.com'>Lemote</a> Inc.
+			Copyright &#169;2013 <a target='_blank' href='http://www.lemote.com'>Lemote</a>. All rights reserved 
 		</center>
 
 		<script type='text/javascript'>
@@ -46,12 +47,13 @@
 						for (var i=0; i<files.length; i++) {
 							if ('' == files[i]) continue;
 							content += "<tr>";
-							content += "<th align='left'><a href='#' " +
+							content += "<th align='left'><a style='cursor:pointer' " +
+										"title='点击查看此文件的详细信息' " +
 										"onclick=\"query_file_info ('" + files[i] + "')\">" +
 										files[i] + "</a></th>";
-							content += "<th> ---> </th>";
-							content += "<th align='left'><a href='/fb/" + files[i] + "'>" +
-								get_base_url () + "/fb/" + files[i] + "</a></th>";
+							content += "<td> &#10132; </td>";
+							content += "<td align='left'><a target='_blank' href='/fb/" + files[i] + "'>" +
+										get_base_url () + "/fb/" + files[i] + "</a></td>";
 							content += "</tr>";
 						}
 						content += "</table>";
@@ -82,7 +84,7 @@
 						$('#submit').val ('正在上传 ' + percent + '%...');
 					},
 					success: function () {
-						$('#submit').val ('正在上传 100%...');
+						$('#submit').val ('正在上传 99%...');
 					},
 					complete: function (xhr) {
 						$('#submit').prop ('disabled', false);
