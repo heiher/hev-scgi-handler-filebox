@@ -306,8 +306,9 @@ file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
 	GHashTable *req_htb = NULL;
 	gchar *duration = NULL, *one_off = NULL;
 	GKeyFile *meta = NULL;
-	GDateTime *crt_time = NULL;
+	GDateTime *crt_time = NULL, *exp_time = NULL;
 	GFileOutputStream *file_ostream = NULL;
+	guint64 dur = 0;
 
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
@@ -326,15 +327,16 @@ file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
 	g_key_file_set_int64 (meta, "Meta", "CrtDate",
 				g_date_time_to_unix (crt_time));
 	if (duration) {
-		GDateTime *exp_time = NULL;
-		guint64 dur = g_ascii_strtoull (duration, NULL, 10);
+		dur = g_ascii_strtoull (duration, NULL, 10);
 		if ((0 >= dur) || (7 < dur))
 		  dur = 1;
-		exp_time = g_date_time_add_days (crt_time, dur);
-		g_key_file_set_int64 (meta, "Meta", "ExpDate",
-					g_date_time_to_unix (exp_time));
-		g_date_time_unref (exp_time);
+	} else {
+		dur = 1;
 	}
+	exp_time = g_date_time_add_days (crt_time, dur);
+	g_key_file_set_int64 (meta, "Meta", "ExpDate",
+				g_date_time_to_unix (exp_time));
+	g_date_time_unref (exp_time);
 	g_date_time_unref (crt_time);
 	g_key_file_set_boolean (meta, "Meta", "OneOff", one_off ? TRUE : FALSE);
 	g_key_file_set_string (meta, "Meta", "IP",
