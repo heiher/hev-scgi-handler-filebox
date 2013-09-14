@@ -1,0 +1,61 @@
+/* main.css
+ * Heiher <root@heiher.info>
+ */
+
+body {
+	font-family: oxygen,sans-serif;
+	background: #F0EDE3;
+	color: #33290A;
+	margin: 0px;
+}
+
+#header {
+    text-align: center;
+    background: #FFFFFF;
+    margin: 0em auto;
+    padding: 1em;
+    width: 50em;
+    border: thin solid;
+    border-color: #DDDACF #CCC8B8 #BBB59F;
+    box-shadow: 0 0.1em 0.3em #CCC8B8;
+    border-bottom-right-radius: 0.5em;
+    border-bottom-left-radius: 0.5em;
+}
+
+#header strong {
+	font-size: 2.5em;
+}
+
+#htitle {
+    color: #000000;
+    text-decoration: none;
+    transition: color 0.25s;
+}
+
+.area {
+    background: #FFFFFF;
+    margin: 1em auto;
+    padding: 1em;
+    width: 50em;
+    border: thin solid;
+    border-color: #DDDACF #CCC8B8 #BBB59F;
+    box-shadow: 0 0.1em 0.3em #CCC8B8;
+    border-radius: 0.5em;
+}
+
+#file-upload td {
+	text-align: left;
+}
+
+#file-list table {
+	border-spacing: 0px;
+}
+
+#file-list tr:nth-child(2n+1) {
+    background-color: #F7F6F1;
+}
+
+#file-list th,td {
+	text-align: left;
+}
+
