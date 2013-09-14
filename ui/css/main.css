@@ -57,6 +57,7 @@ body {
 
 #file-upload .filename {
 	min-width: 18.5em;
+    background-color: #F7F6F1;
 }
 
 #file-upload .opt {
