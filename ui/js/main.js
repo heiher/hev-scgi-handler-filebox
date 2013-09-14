@@ -41,6 +41,31 @@ function query_file_info (file) {
 	}});
 }
 
+function switch_opt_symbol () {
+	var idx = $(this).prop ('id').substring (4, 5);
+	if ('' == $(this).val ()) {
+		$('#fo' + idx).html ('&#10010;');
+	} else {
+		$('#fn' + idx).html ($(this).val ());
+		$('#fo' + idx).html ('&#10008;');
+	}
+}
+
+function reset_upload_holders () {
+	var fns = $('#file-upload .filename');
+	var fos = $('#file-upload .opt');
+	for (var i=0; i<fns.length; i++)
+	  $(fns[i]).html ('');
+	for (var i=0; i<fos.length; i++)
+	  $(fos[i]).html ('&#10010;');
+}
+
+function do_init () {
+	load_file_list ();
+
+	$('#file-upload input[type=file]').bind ('change focus click', switch_opt_symbol);
+}
+
 $('#file-upload').submit (function () {
 	$(this).ajaxSubmit ({
 		resetForm: true,
@@ -52,15 +77,31 @@ $('#file-upload').submit (function () {
 			$('#submit').val ('正在上传 ' + percent + '%...');
 		},
 		success: function () {
-			$('#submit').val ('正在上传 99%...');
+			$('#submit').val ('正在上传 100%...');
 		},
 		complete: function (xhr) {
 			$('#submit').prop ('disabled', false);
 			$('#submit').val ('开始上传');
+			if (200 == xhr.status)
+			  reset_upload_holders ();
 			alert (xhr.statusText);
 		}
 	});
 
 	return false;
 });
+
+$('.opt').click (function () {
+	var idx = $(this).prop ('id').substring (2, 3);
+	var file = $('#file' + idx);
+	if ('' == file.val ()) {
+		file.click ();
+	} else {
+		file.val ('');
+		$('#fn' + idx).html ('');
+		$('#fo' + idx).html ('&#10010;');
+	}
+});
+
+do_init ();
 

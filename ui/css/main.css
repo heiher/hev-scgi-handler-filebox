@@ -47,6 +47,22 @@ body {
 	text-align: left;
 }
 
+#file-upload input[type='file'] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	max-height: 0px;
+	max-width: 0px;
+}
+
+#file-upload .filename {
+	min-width: 18.5em;
+}
+
+#file-upload .opt {
+	cursor: pointer;
+}
+
 #file-list table {
 	border-spacing: 0px;
 }

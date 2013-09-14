@@ -15,15 +15,18 @@
 			<form id='file-upload' method='POST' enctype='multipart/form-data' action='/fb/upload'>
 				<table border='0'>
 					<tr>
-						<td>文件1：</td><td><input type='file' name='file1' /></td>
+						<td>文件1：</td><td id='fn1' class='filename'></td><td id='fo1' class='opt'>&#10010;</td>
 					</tr>
 					<tr>
-						<td>文件2：</td><td><input type='file' name='file2' /></td>
+						<td>文件2：</td><td id='fn2' class='filename'></td><td id='fo2' class='opt'>&#10010;</td>
 					</tr>
 					<tr>
-						<td>文件3：</td><td><input type='file' name='file3' /></td>
+						<td>文件3：</td><td id='fn3' class='filename'></td><td id='fo3' class='opt'>&#10010;</td>
 					</tr>
 				</table><br />
+				<input type='file' id='file1' name='file1' />
+				<input type='file' id='file2' name='file2' />
+				<input type='file' id='file3' name='file3' />
 				有效期：
 				<input type='radio' name='duration' value='1' checked='true' />1天
 				<input type='radio' name='duration' value='2' />2天
@@ -41,7 +44,6 @@
 			Copyright &#169;2013 <a target='_blank' href='http://www.lemote.com'>Lemote</a>. All rights reserved 
 		</center>
 		<script type='text/javascript' src='./js/main.js'></script>
-		<script type='text/javascript'>load_file_list ();</script>
 	</body>
 </html>
 
