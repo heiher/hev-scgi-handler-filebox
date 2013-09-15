@@ -41,13 +41,33 @@ function query_file_info (file) {
 	}});
 }
 
+function check_files_size () {
+	var size = 0, allowed_size = 1024 * 1024 * 1024;
+	var files = $('.ifile');
+
+	for (var i=0; i<files.length; i++) {
+		if (files.get (i).files.length)
+		  size += files.get (i).files[0].size;
+	}
+	if (size > allowed_size) {
+		alert ('单次上传文件总长度最大 1GB！');
+		return false;
+	}
+
+	return true;
+}
+
 function switch_opt_symbol () {
 	var idx = $(this).prop ('id').substring (4, 5);
 	if ('' == $(this).val ()) {
 		$('#fo' + idx).html ('&#10010;');
 	} else {
-		$('#fn' + idx).html ($(this).val ());
-		$('#fo' + idx).html ('&#10008;');
+		if (check_files_size ()) {
+			$('#fn' + idx).html ($(this).val ());
+			$('#fo' + idx).html ('&#10008;');
+		} else {
+			$(this).val ('');
+		}
 	}
 }
 
@@ -63,7 +83,7 @@ function reset_upload_holders () {
 function do_init () {
 	load_file_list ();
 
-	$('#file-upload input[type=file]').bind ('change focus click', switch_opt_symbol);
+	$('#file-upload input[type=file]').bind ('change', switch_opt_symbol);
 }
 
 $('#file-upload').submit (function () {
