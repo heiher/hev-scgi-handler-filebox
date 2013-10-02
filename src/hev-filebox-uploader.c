@@ -233,7 +233,7 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	regex = g_regex_new ("^multipart/form-data;\\s*boundary=(.+)$", 0, 0, NULL);
 	if (!g_regex_match (regex, content_type, 0, &match_info)) {
 		g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("400 Bad Request"));
-		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 		g_regex_unref (regex);
 		g_task_return_boolean (task, FALSE);
 		return;
@@ -292,7 +292,7 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 
 	if (!g_hash_table_contains (res_htb, "Status"))
 	  g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
-	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 
 	g_task_return_boolean (task, status);
 }

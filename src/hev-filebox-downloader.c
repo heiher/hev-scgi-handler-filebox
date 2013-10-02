@@ -280,7 +280,7 @@ filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 	} else {
 		g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("404 Not Found"));
 	}
-	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 
 	if (exists) {
 		GFileInputStream *file_istream = g_file_read (file, NULL, NULL);
@@ -356,7 +356,7 @@ filebox_downloader_handle_task_list (HevFileboxDownloader *self,
 	/* write response header */
 	g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
 	g_hash_table_insert (res_htb, g_strdup ("Content-Type"), g_strdup ("text/plain"));
-	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 
 	/* enumerate file pool */
 	file = g_file_new_for_path (fp_path);

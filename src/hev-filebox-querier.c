@@ -240,7 +240,7 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 		/* write attributes */
 		if (size || meta) {
 			g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
-			hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+			hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 			g_output_stream_write_all (res_stream, "File: ", 6, NULL, NULL, NULL);
 			g_output_stream_write_all (res_stream, basename, strlen (basename), NULL, NULL, NULL);
 			g_output_stream_write_all (res_stream, "\r\n", 2, NULL, NULL, NULL);
@@ -249,7 +249,7 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 			if (meta)
 			  g_output_stream_write_all (res_stream, meta, strlen (meta), NULL, NULL, NULL);
 		} else {
-			hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+			hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 		}
 
 		g_free (basename);
@@ -257,7 +257,7 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 		g_free (meta);
 	} else {
 		g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("400 Bad Request"));
-		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response));
+		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 	}
 
 	g_match_info_unref (match_info);
