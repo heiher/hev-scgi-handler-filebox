@@ -2,13 +2,15 @@
  * Heiher <root@heiher.info>
  */
 
+const BASE_URI = '/fb/';
+
 function get_base_url () {
 	return window.location.protocol + '//' +
 		window.location.hostname;
 }
 
 function load_file_list () {
-	$.ajax({ url: '/fb', type: 'GET',
+	$.ajax({ url: BASE_URI, type: 'GET',
 		success: function (data) {
 			var content = '';
 			var files = data.split ('\r\n');
@@ -22,8 +24,8 @@ function load_file_list () {
 							"onclick=\"query_file_info ('" + files[i] + "')\">" +
 							files[i] + "</a></th>";
 				content += "<td> &#10132;&nbsp; </td>";
-				content += "<td><a target='_blank' href='/fb/" + files[i] + "'>" +
-							get_base_url () + "/fb/" + files[i] + "</a></td>";
+				content += "<td><a target='_blank' href='" + BASE_URI + files[i] + "'>" +
+							get_base_url () + BASE_URI + files[i] + "</a></td>";
 				content += "</tr>";
 			}
 			content += "</table>";
@@ -35,7 +37,7 @@ function load_file_list () {
 }
 
 function query_file_info (file) {
-	$.ajax({ url: '/fb/query?file=' + file, type: 'GET',
+	$.ajax({ url: BASE_URI + 'query?file=' + file, type: 'GET',
 		success: function (data) {
 			alert (data);
 	}});
@@ -83,6 +85,7 @@ function reset_upload_holders () {
 function do_init () {
 	load_file_list ();
 
+	$('#file-upload').attr ('action', BASE_URI + 'upload');
 	$('#file-upload input[type=file]').bind ('change', switch_opt_symbol);
 }
 
