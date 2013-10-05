@@ -1,4 +1,4 @@
-# Makefile for hev-scgi-server
+# Makefile for hev-scgi-handler-filebox
  
 CPP=cpp
 CC=gcc
@@ -10,7 +10,7 @@ SRCDIR=src
 BINDIR=bin
 BUILDDIR=build
 
-TARGET=$(BINDIR)/libhev-scgi-server-filebox.so
+TARGET=$(BINDIR)/libhev-scgi-handler-filebox.so
 
 LDOBJS=$(patsubst $(SRCDIR)%.c,$(BUILDDIR)%.o,$(wildcard src/*.c))
 DEPEND=$(LDOBJS:.o=.dep)
