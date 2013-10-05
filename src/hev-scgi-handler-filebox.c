@@ -150,12 +150,12 @@ hev_scgi_handler_filebox_constructed(GObject *obj)
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
+	G_OBJECT_CLASS(hev_scgi_handler_filebox_parent_class)->constructed(obj);
+
 	priv->uploader = hev_filebox_uploader_new (priv->config);
 	priv->querier = hev_filebox_querier_new (priv->config);
 	priv->downloader = hev_filebox_downloader_new (priv->config);
 	priv->cleaner = hev_filebox_cleaner_new (priv->config);
-
-	G_OBJECT_CLASS(hev_scgi_handler_filebox_parent_class)->constructed(obj);
 }
 
 static void
