@@ -53,6 +53,10 @@ static void filebox_querier_handle_handler (GObject *source_object, GAsyncResult
 static void hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_downloader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
+#ifdef STATIC_MODULE
+G_DEFINE_TYPE_EXTENDED(HevSCGIHandlerFilebox, hev_scgi_handler_filebox, G_TYPE_OBJECT, 0,
+			G_IMPLEMENT_INTERFACE(HEV_TYPE_SCGI_HANDLER, hev_scgi_handler_iface_init));
+#else /* STATIC_MODULE */
 G_DEFINE_DYNAMIC_TYPE_EXTENDED(HevSCGIHandlerFilebox, hev_scgi_handler_filebox, G_TYPE_OBJECT, 0,
 			G_IMPLEMENT_INTERFACE_DYNAMIC(HEV_TYPE_SCGI_HANDLER, hev_scgi_handler_iface_init));
 
@@ -64,6 +68,7 @@ hev_scgi_handler_filebox_reg_type(GTypeModule *module)
 	if(G_TYPE_INVALID == HEV_TYPE_SCGI_HANDLER_FILEBOX)
 	  hev_scgi_handler_filebox_register_type(module);
 }
+#endif /* !STATIC_MODULE */
 
 static const gchar * hev_scgi_handler_filebox_get_alias(HevSCGIHandler *handler);
 static const gchar * hev_scgi_handler_filebox_get_name(HevSCGIHandler *handler);

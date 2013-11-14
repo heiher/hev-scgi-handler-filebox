@@ -13,6 +13,7 @@
 
 #include "hev-scgi-handler-filebox.h"
 
+#ifndef STATIC_MODULE
 G_MODULE_EXPORT GType
 hev_scgi_handler_module_get_handler_type (GTypeModule *module)
 {
@@ -22,4 +23,5 @@ hev_scgi_handler_module_get_handler_type (GTypeModule *module)
 
 	return HEV_TYPE_SCGI_HANDLER_FILEBOX;
 }
+#endif /* !STATIC_MODULE */
 
