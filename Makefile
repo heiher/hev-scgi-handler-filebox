@@ -19,15 +19,24 @@ $(STATIC_TARGET): CCFLAGS+=-DSTATIC_MODULE
 $(SHARED_TARGET): CCFLAGS+=-fPIC
 $(SHARED_TARGET): LDFLAGS+=-shared `pkg-config --libs $(PKG_DEPS)` -L../hev-scgi-server-library/bin -lhev-scgi-server
 
+CCOBJSFILE=$(BUILDDIR)/ccobjs
+-include $(CCOBJSFILE)
 LDOBJS=$(patsubst $(SRCDIR)%.c,$(BUILDDIR)%.o,$(wildcard src/*.c))
+
 DEPEND=$(LDOBJS:.o=.dep)
  
-shared : $(SHARED_TARGET)
-static : $(STATIC_TARGET)
+shared : $(CCOBJSFILE) $(SHARED_TARGET)
+	@$(RM) $(CCOBJSFILE)
+
+static : $(CCOBJSFILE) $(STATIC_TARGET)
+	@$(RM) $(CCOBJSFILE)
  
 clean : 
 	@echo -n "Clean ... " && $(RM) $(BINDIR)/* $(BUILDDIR)/* && echo "OK"
  
+$(CCOBJSFILE) :
+	@echo CCOBJS=`ls $(SRCDIR)/*.c` > $(CCOBJSFILE)
+
 $(STATIC_TARGET) : $(LDOBJS)
 	@echo -n "Linking $^ to $@ ... " && $(AR) cqs $@ $^ && echo "OK"
 
