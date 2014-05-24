@@ -19,11 +19,11 @@ function load_file_list () {
 			for (var i=0; i<files.length; i++) {
 				if ('' == files[i]) continue;
 				content += "<tr>";
-				content += "<th><a style='cursor:pointer' " +
+				content += "<th width='320px'><a style='cursor:pointer' " +
 							"title='点击查看此文件的详细信息' " +
 							"onclick=\"query_file_info ('" + files[i] + "')\">" +
 							files[i] + "</a></th>";
-				content += "<td> &#10132;&nbsp; </td>";
+				content += "<td width='20px'> &#10132;&nbsp; </td>";
 				content += "<td><a target='_blank' href='" + BASE_URI + files[i] + "'>" +
 							get_base_url () + BASE_URI + files[i] + "</a></td>";
 				content += "</tr>";
