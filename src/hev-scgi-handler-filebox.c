@@ -8,6 +8,7 @@
  ============================================================================
  */
 
+#include <string.h>
 #include <hev-scgi-1.0.h>
 
 #include "hev-scgi-handler-filebox.h"
@@ -37,6 +38,7 @@ struct _HevSCGIHandlerFileboxPrivate
 	GKeyFile *config;
 	gchar *alias;
 	gchar *pattern;
+	gsize base_uri_len;
 
 	GObject *uploader;
 	GObject *querier;
@@ -174,11 +176,20 @@ hev_scgi_handler_filebox_set_property(GObject *obj,
 
 	switch(prop_id) {
 	case PROP_CONFIG:
-			priv->config = g_value_get_pointer(value);
-			break;
+	{
+		gchar *base_uri;
+
+		priv->config = g_value_get_pointer(value);
+		base_uri = g_key_file_get_string (priv->config, "Module", "BaseURI", NULL);
+		if (base_uri) {
+			priv->base_uri_len = strlen (base_uri);
+			g_free (base_uri);
+		}
+		break;
+	}
 	default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
-			break;
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+		break;
 	}
 }
 
@@ -193,11 +204,11 @@ hev_scgi_handler_filebox_get_property(GObject *obj,
 
 	switch(prop_id) {
 	case PROP_CONFIG:
-			g_value_set_pointer(value, priv->config);
-			break;
+		g_value_set_pointer(value, priv->config);
+		break;
 	default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
-			break;
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+		break;
 	}
 }
 
@@ -245,6 +256,7 @@ hev_scgi_handler_filebox_init(HevSCGIHandlerFilebox *self)
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	priv->config = NULL;
+	priv->base_uri_len = 0;
 
 	priv->uploader = NULL;
 	priv->querier = NULL;
@@ -304,24 +316,22 @@ hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task)
 	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
 	GObject *request = NULL;
 	GHashTable *req_hash_table = NULL;
-	const gchar *request_uri = NULL;
-	gchar *str, pat_upload[256], pat_query[256];
+	gchar *request_uri = NULL;
+	gsize request_uri_len;
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
 	req_hash_table = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
 	request_uri = g_hash_table_lookup (req_hash_table, "REQUEST_URI");
+	request_uri_len = strlen (request_uri);
 
-	/* patterns */
-	str = g_key_file_get_string (priv->config, "Module", "BaseURI", NULL);
-	g_snprintf (pat_upload, 256, "^%supload$", str);
-	g_snprintf (pat_query, 256, "^%squery\\?(.+)$", str);
-	g_free (str);
+	request_uri += (priv->base_uri_len > request_uri_len) ?
+		request_uri_len : priv->base_uri_len;
 
-	if (g_regex_match_simple (pat_upload, request_uri, 0, 0)) { /* uploader */
+	if (g_regex_match_simple ("^upload$", request_uri, 0, 0)) { /* uploader */
 		hev_scgi_handler_filebox_handle_upload (self, scgi_task);
-	} else if (g_regex_match_simple (pat_query, request_uri, 0, 0)) { /* query */
+	} else if (g_regex_match_simple ("^query\\?(.+)$", request_uri, 0, 0)) { /* querier */
 		hev_scgi_handler_filebox_handle_query (self, scgi_task);
 	} else { /* downloader */
 		hev_scgi_handler_filebox_handle_download (self, scgi_task);
