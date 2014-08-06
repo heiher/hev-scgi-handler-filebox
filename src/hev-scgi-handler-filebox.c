@@ -16,6 +16,7 @@
 #include "hev-filebox-querier.h"
 #include "hev-filebox-downloader.h"
 #include "hev-filebox-cleaner.h"
+#include "hev-filebox-deleter.h"
 
 #define HEV_SCGI_HANDLER_FILEBOX_NAME		"HevSCGIHandlerFilebox"
 #define HEV_SCGI_HANDLER_FILEBOX_VERSION	"0.0.1"
@@ -42,6 +43,7 @@ struct _HevSCGIHandlerFileboxPrivate
 
 	GObject *uploader;
 	GObject *querier;
+	GObject *deleter;
 	GObject *downloader;
 	GObject *cleaner;
 };
@@ -51,7 +53,9 @@ static void hev_scgi_handler_iface_init(HevSCGIHandlerInterface * iface);
 static void hev_scgi_handler_filebox_handle_upload (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_uploader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 static void hev_scgi_handler_filebox_handle_query (HevSCGIHandler *self, GObject *scgi_task);
+static void hev_scgi_handler_filebox_handle_delete (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_querier_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
+static void filebox_deleter_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 static void hev_scgi_handler_filebox_handle_download (HevSCGIHandler *self, GObject *scgi_task);
 static void filebox_downloader_handle_handler (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
@@ -94,6 +98,11 @@ hev_scgi_handler_filebox_dispose(GObject *obj)
 	if (priv->querier) {
 		g_object_unref (priv->querier);
 		priv->querier = NULL;
+	}
+
+	if (priv->deleter) {
+		g_object_unref (priv->deleter);
+		priv->deleter = NULL;
 	}
 
 	if (priv->downloader) {
@@ -161,6 +170,7 @@ hev_scgi_handler_filebox_constructed(GObject *obj)
 
 	priv->uploader = hev_filebox_uploader_new (priv->config);
 	priv->querier = hev_filebox_querier_new (priv->config);
+	priv->deleter = hev_filebox_deleter_new (priv->config);
 	priv->downloader = hev_filebox_downloader_new (priv->config);
 	priv->cleaner = hev_filebox_cleaner_new (priv->config);
 }
@@ -260,6 +270,7 @@ hev_scgi_handler_filebox_init(HevSCGIHandlerFilebox *self)
 
 	priv->uploader = NULL;
 	priv->querier = NULL;
+	priv->deleter = NULL;
 	priv->downloader = NULL;
 	priv->cleaner = NULL;
 }
@@ -333,6 +344,8 @@ hev_scgi_handler_filebox_handle (HevSCGIHandler *self, GObject *scgi_task)
 		hev_scgi_handler_filebox_handle_upload (self, scgi_task);
 	} else if (g_regex_match_simple ("^query\\?(.+)$", request_uri, 0, 0)) { /* querier */
 		hev_scgi_handler_filebox_handle_query (self, scgi_task);
+	} else if (g_regex_match_simple ("^delete\\?(.+)$", request_uri, 0, 0)) { /* deleter */
+		hev_scgi_handler_filebox_handle_delete (self, scgi_task);
 	} else { /* downloader */
 		hev_scgi_handler_filebox_handle_download (self, scgi_task);
 	}
@@ -376,6 +389,26 @@ filebox_querier_handle_handler (GObject *source_object,
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	hev_filebox_querier_handle_finish (HEV_FILEBOX_QUERIER (source_object), res, NULL);
+}
+
+static void
+hev_scgi_handler_filebox_handle_delete (HevSCGIHandler *self, GObject *scgi_task)
+{
+	HevSCGIHandlerFileboxPrivate *priv = HEV_SCGI_HANDLER_FILEBOX_GET_PRIVATE(self);
+
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	hev_filebox_deleter_handle_async (HEV_FILEBOX_DELETER (priv->deleter),
+				scgi_task, filebox_deleter_handle_handler, NULL);
+}
+
+static void
+filebox_deleter_handle_handler (GObject *source_object,
+			GAsyncResult *res, gpointer user_data)
+{
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	hev_filebox_deleter_handle_finish (HEV_FILEBOX_DELETER (source_object), res, NULL);
 }
 
 static void
