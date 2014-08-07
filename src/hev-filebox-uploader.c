@@ -209,11 +209,13 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	GInputStream *req_stream = NULL;
 	GHashTable *req_htb = NULL;
 	GObject *response = NULL;
+	GOutputStream *res_stream = NULL;
 	GHashTable *res_htb = NULL;
 	const gchar *content_type = NULL, *content_length = NULL;
 	GRegex *regex = NULL;
 	GMatchInfo *match_info = NULL;
-	gchar *boundary = NULL, *fp_path = NULL, *fm_path = NULL, *ft_path = NULL;
+	gchar rand_pass[16], *boundary = NULL, *fp_path = NULL, *fm_path = NULL, *ft_path = NULL;
+	gint rand_pass_len;
 	guint64 length = 0;
 	GFile *file_tmp = NULL;
 
@@ -223,6 +225,7 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	req_stream = hev_scgi_request_get_input_stream (HEV_SCGI_REQUEST (request));
 	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
 	response = hev_scgi_task_get_response (HEV_SCGI_TASK (scgi_task));
+	res_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
 	res_htb = hev_scgi_response_get_header_hash_table (HEV_SCGI_RESPONSE (response));
 
 	content_type = g_hash_table_lookup (req_htb, "CONTENT_TYPE");
@@ -246,6 +249,8 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	ft_path = g_key_file_get_string (priv->config, "Module", "FileTempPath", NULL);
 
 	length = g_ascii_strtoull (content_length, NULL, 10);
+	rand_pass_len = g_snprintf (rand_pass, 16, "%u", g_random_int_range (99999, 999999));
+	g_object_set_data (scgi_task, "rand-pass", rand_pass);
 
 	/* create tmp file */
 	file_tmp = filebox_uploader_handle_task_create_tmp (self, scgi_task,
@@ -292,6 +297,7 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	if (!g_hash_table_contains (res_htb, "Status"))
 	  g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
 	hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
+	g_output_stream_write_all (res_stream, rand_pass, rand_pass_len, NULL, NULL, NULL);
 
 	g_task_return_boolean (task, status);
 }
@@ -303,7 +309,7 @@ file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
 	GObject *scgi_task = G_OBJECT (user_data);
 	GObject *request = NULL;
 	GHashTable *req_htb = NULL;
-	gchar *duration = NULL, *one_off = NULL;
+	gchar *duration = NULL, *one_off = NULL, *rand_pass = NULL;
 	GKeyFile *meta = NULL;
 	GDateTime *crt_time = NULL, *exp_time = NULL;
 	GFileOutputStream *file_ostream = NULL;
@@ -316,6 +322,7 @@ file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
 
 	duration = g_object_get_data (scgi_task, "duration");
 	one_off = g_object_get_data (scgi_task, "one-off");
+	rand_pass = g_object_get_data (scgi_task, "rand-pass");
 
 	meta_file = g_object_get_data (G_OBJECT (file), "meta");
 	g_file_delete (meta_file, NULL, NULL);
@@ -340,6 +347,7 @@ file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
 	g_key_file_set_boolean (meta, "Meta", "OneOff", one_off ? TRUE : FALSE);
 	g_key_file_set_string (meta, "Meta", "IP",
 				g_hash_table_lookup (req_htb, "REMOTE_ADDR"));
+	g_key_file_set_string (meta, "Meta", "RandPass", rand_pass);
 
 	/* create and write to meta file */
 	file_ostream = g_file_create (meta_file, G_FILE_CREATE_PRIVATE, NULL, NULL);
