@@ -26,6 +26,7 @@ function load_file_list () {
 				content += "<td width='20px'> &#10132;&nbsp; </td>";
 				content += "<td><a target='_blank' href='" + BASE_URI + files[i] + "'>" +
 							get_base_url () + BASE_URI + files[i] + "</a></td>";
+				content += "<td width='20px' class='del' onclick=\"delete_file ('" + files[i] + "')\"> &#10008; </td>";
 				content += "</tr>";
 			}
 			content += "</table>";
@@ -40,7 +41,19 @@ function query_file_info (file) {
 	$.ajax({ url: BASE_URI + 'query?file=' + file, type: 'GET',
 		success: function (data) {
 			alert (data);
-	}});
+		}
+	});
+}
+
+function delete_file (file) {
+	var pass = prompt("请输入文件 '" + file + "' 的删除码：");
+	if (null != pass) {
+		$.ajax({ url: BASE_URI + 'delete?file=' + file + '&pass=' + pass, type: 'GET',
+			complete: function (xhr, statusText) {
+				alert (statusText);
+			}
+		});
+	}
 }
 
 function check_files_size () {
@@ -107,7 +120,7 @@ $('#file-upload').submit (function () {
 			$('#submit').val ('开始上传');
 			if (200 == xhr.status)
 			  reset_upload_holders ();
-			alert (xhr.statusText);
+			alert ('删除码：' + xhr.responseText);
 		}
 	});
 

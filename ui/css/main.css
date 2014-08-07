@@ -64,7 +64,7 @@ body {
 	text-overflow: ellipsis;
 }
 
-#file-upload .opt {
+#file-upload .opt, #file-list .del {
 	cursor: pointer;
 }
 
