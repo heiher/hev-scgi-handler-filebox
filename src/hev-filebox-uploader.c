@@ -52,28 +52,28 @@ G_DEFINE_TYPE (HevFileboxUploader, hev_filebox_uploader, G_TYPE_OBJECT);
 static void
 hev_filebox_uploader_dispose (GObject *obj)
 {
-    HevFileboxUploader *self = HEV_FILEBOX_UPLOADER (obj);
-    HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
+	HevFileboxUploader *self = HEV_FILEBOX_UPLOADER (obj);
+	HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->dispose (obj);
+	G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->dispose (obj);
 }
 
 static void
 hev_filebox_uploader_finalize (GObject *obj)
 {
-    HevFileboxUploader *self = HEV_FILEBOX_UPLOADER (obj);
-    HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
+	HevFileboxUploader *self = HEV_FILEBOX_UPLOADER (obj);
+	HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	if(priv->config) {
 		g_key_file_unref (priv->config);
 		priv->config = NULL;
 	}
 
-    G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->finalize (obj);
+	G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->finalize (obj);
 }
 
 static GObject *
@@ -81,18 +81,17 @@ hev_filebox_uploader_constructor (GType type,
             guint n,
             GObjectConstructParam *param)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->
-        constructor (type, n, param);
+	return G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->constructor (type, n, param);
 }
 
 static void
 hev_filebox_uploader_constructed (GObject *obj)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->constructed (obj);
+	G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->constructed (obj);
 }
 
 static void
@@ -106,11 +105,11 @@ hev_filebox_uploader_set_property(GObject *obj,
 
 	switch(prop_id) {
 	case PROP_CONFIG:
-			priv->config = g_key_file_ref (g_value_get_pointer(value));
-			break;
+		priv->config = g_key_file_ref (g_value_get_pointer(value));
+		break;
 	default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
-			break;
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+		break;
 	}
 }
 
@@ -125,25 +124,25 @@ hev_filebox_uploader_get_property(GObject *obj,
 
 	switch(prop_id) {
 	case PROP_CONFIG:
-			g_value_set_pointer(value, priv->config);
-			break;
+		g_value_set_pointer(value, priv->config);
+		break;
 	default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
-			break;
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+		break;
 	}
 }
 
 static void
 hev_filebox_uploader_class_init (HevFileboxUploaderClass *klass)
 {
-    GObjectClass *obj_class = G_OBJECT_CLASS (klass);
+	GObjectClass *obj_class = G_OBJECT_CLASS (klass);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    obj_class->constructor = hev_filebox_uploader_constructor;
-    obj_class->constructed = hev_filebox_uploader_constructed;
-    obj_class->dispose = hev_filebox_uploader_dispose;
-    obj_class->finalize = hev_filebox_uploader_finalize;
+	obj_class->constructor = hev_filebox_uploader_constructor;
+	obj_class->constructed = hev_filebox_uploader_constructed;
+	obj_class->dispose = hev_filebox_uploader_dispose;
+	obj_class->finalize = hev_filebox_uploader_finalize;
 
 	obj_class->set_property = hev_filebox_uploader_set_property;
 	obj_class->get_property = hev_filebox_uploader_get_property;
@@ -154,23 +153,23 @@ hev_filebox_uploader_class_init (HevFileboxUploaderClass *klass)
 	g_object_class_install_properties(obj_class, N_PROPERTIES,
 				hev_filebox_uploader_properties);
 
-    g_type_class_add_private (klass, sizeof (HevFileboxUploaderPrivate));
+	g_type_class_add_private (klass, sizeof (HevFileboxUploaderPrivate));
 }
 
 static void
 hev_filebox_uploader_init (HevFileboxUploader *self)
 {
-    HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
+	HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
 GObject *
 hev_filebox_uploader_new (GKeyFile *config)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return g_object_new (HEV_TYPE_FILEBOX_UPLOADER, "config", config, NULL);
+	return g_object_new (HEV_TYPE_FILEBOX_UPLOADER, "config", config, NULL);
 }
 
 void
@@ -179,7 +178,7 @@ hev_filebox_uploader_handle_async (HevFileboxUploader *self, GObject *scgi_task,
 {
 	GTask *task = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	task = g_task_new (self, NULL, callback, user_data);
 	g_task_set_task_data (task, g_object_ref (scgi_task), (GDestroyNotify) g_object_unref);
@@ -191,7 +190,7 @@ gboolean
 hev_filebox_uploader_handle_finish (HevFileboxUploader *self,
 			GAsyncResult *result, GError **error)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
 
@@ -203,7 +202,7 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable)
 {
 	HevFileboxUploader *self = HEV_FILEBOX_UPLOADER (source_object);
-    HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
+	HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
 	GObject *scgi_task = task_data;
 	gboolean status = TRUE;
 	GObject *request = NULL;
@@ -218,7 +217,7 @@ filebox_uploader_handle_task_handler (GTask *task, gpointer source_object,
 	guint64 length = 0;
 	GFile *file_tmp = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
 	req_stream = hev_scgi_request_get_input_stream (HEV_SCGI_REQUEST (request));
@@ -310,7 +309,7 @@ file_ptr_array_foreach_write_meta_handler (gpointer data, gpointer user_data)
 	GFileOutputStream *file_ostream = NULL;
 	guint64 dur = 0;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
 	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
@@ -368,7 +367,7 @@ filebox_uploader_handle_task_create_tmp (HevFileboxUploader *self,
 	const gchar *remote_addr = NULL, *remote_port = NULL;
 	GFileOutputStream *file_ostream = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	remote_addr = g_hash_table_lookup (req_htb, "REMOTE_ADDR");
 	remote_port = g_hash_table_lookup (req_htb, "REMOTE_PORT");
@@ -429,7 +428,7 @@ filebox_uploader_handle_task_split_tmp (HevFileboxUploader *self,
 	gchar *contents = NULL, *pi = NULL, *ps = NULL, *pe = NULL;
 	gsize i = 0, length = 0, blen = strlen (boundary);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	contents = g_mapped_file_get_contents (mapped_file);
 	length = g_mapped_file_get_length (mapped_file);
@@ -514,7 +513,7 @@ file_ptr_array_foreach_delete_handler (gpointer data, gpointer user_data)
 {
 	GFile *file = G_FILE (data);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	g_file_delete (file, NULL, NULL);
 }
@@ -530,7 +529,7 @@ filebox_uploader_handle_task_create_file (HevFileboxUploader *self,
 	gchar *file_name = NULL, *basename = NULL, *file_path = NULL, *meta_path = NULL;
 	GFileOutputStream *file_ostream = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	/* fetch filename */
 	regex = g_regex_new ("filename=\"(.+)\"", 0, 0, NULL);
