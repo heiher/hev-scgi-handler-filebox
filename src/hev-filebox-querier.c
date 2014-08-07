@@ -13,6 +13,8 @@
 
 #include "hev-filebox-querier.h"
 
+#define SHOW_PASSWORD	FALSE
+
 enum
 {
 	PROP_0,
@@ -313,7 +315,7 @@ filebox_querier_handle_task_query_meta (HevFileboxQuerier *self,
 		g_hash_table_insert (res_htb, g_strdup ("Status"),
 					g_strdup ("500 Internal Server Error"));
 	} else {
-		gchar *crt = NULL, *exp = NULL, *one_off = NULL, *ip = NULL;
+		gchar *crt = NULL, *exp = NULL, *one_off = NULL, *ip = NULL, *rand_pass = NULL;
 		GDateTime *crt_date = NULL, *exp_date = NULL;
 
 		/* CrtDate */
@@ -330,14 +332,24 @@ filebox_querier_handle_task_query_meta (HevFileboxQuerier *self,
 		one_off = g_key_file_get_string (key_file, "Meta", "OneOff", NULL);
 		/* IP */
 		ip = g_key_file_get_string (key_file, "Meta", "IP", NULL);
-
-		meta = g_strdup_printf ("CrtDate: %s\r\nExpDate: %s\r\n"
-					"OneOff: %s\r\nUploaderIP: %s\r\n", crt, exp, one_off, ip);
+		/* Password */
+		rand_pass = g_key_file_get_string (key_file, "Meta", "RandPass", NULL);
+		if (SHOW_PASSWORD && rand_pass) {
+			meta = g_strdup_printf ("CrtDate: %s\r\nExpDate: %s\r\n"
+						"OneOff: %s\r\nUploaderIP: %s\r\n"
+						"Password: %s\r\n",
+						crt, exp, one_off, ip, rand_pass);
+		} else {
+			meta = g_strdup_printf ("CrtDate: %s\r\nExpDate: %s\r\n"
+						"OneOff: %s\r\nUploaderIP: %s\r\n",
+						crt, exp, one_off, ip);
+		}
 
 		g_free (crt);
 		g_free (exp);
 		g_free (one_off);
 		g_free (ip);
+		g_free (rand_pass);
 	}
 
 	g_free (path);
