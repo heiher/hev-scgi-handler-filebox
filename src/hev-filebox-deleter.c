@@ -231,8 +231,8 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 
 		filename = g_uri_unescape_string (file_name, "");
 		basename = g_path_get_basename (filename);
-		pool_path = g_build_filename (fp_path, filename, NULL);
-		meta_path = g_build_filename (fm_path, filename, NULL);
+		pool_path = g_build_filename (fp_path, basename, NULL);
+		meta_path = g_build_filename (fm_path, basename, NULL);
 
 		key_file = g_key_file_new ();
 		if (g_key_file_load_from_file (key_file, meta_path, G_KEY_FILE_NONE, NULL))
