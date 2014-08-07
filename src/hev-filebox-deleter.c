@@ -13,7 +13,7 @@
 
 #include "hev-filebox-deleter.h"
 
-#define PASSWORD	"password"
+#define SUPER_PASSWORD	"password"
 
 enum
 {
@@ -36,8 +36,7 @@ struct _HevFileboxDeleterPrivate
 
 static void filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable);
-static gboolean filebox_deleter_handle_task_delete (const gchar *fp_path,
-			const gchar *fm_path, const gchar *filename);
+static gboolean filebox_deleter_handle_task_delete (const gchar *fp_path, const gchar *fm_path);
 
 G_DEFINE_TYPE (HevFileboxDeleter, hev_filebox_deleter, G_TYPE_OBJECT);
 
@@ -225,30 +224,39 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 	request_uri = g_hash_table_lookup (req_htb, "REQUEST_URI");
 
 	if (g_regex_match (regex, request_uri, 0, &match_info)) {
+		gchar *filename, *basename, *pool_path, *meta_path, *mpass = NULL;
 		gchar *file_name = g_match_info_fetch (match_info, 1);
 		gchar *pass = g_match_info_fetch (match_info, 2);
+		GKeyFile *key_file;
+
+		filename = g_uri_unescape_string (file_name, "");
+		basename = g_path_get_basename (filename);
+		pool_path = g_build_filename (fp_path, filename, NULL);
+		meta_path = g_build_filename (fm_path, filename, NULL);
+
+		key_file = g_key_file_new ();
+		if (g_key_file_load_from_file (key_file, meta_path, G_KEY_FILE_NONE, NULL))
+		      mpass = g_key_file_get_string (key_file, "Meta", "RandPass", NULL);
+		g_key_file_unref (key_file);
 
 		/* check pass */
-		if (0 == strcmp (PASSWORD, pass)) {
-			gchar *filename, *basename;
-
-			filename = g_uri_unescape_string (file_name, "");
-			basename = g_path_get_basename (filename);
-
+		if ((mpass && 0 == strcmp (mpass, pass)) || (0 == strcmp (SUPER_PASSWORD, pass))) {
 			/* unlink */
-			if (filebox_deleter_handle_task_delete (fp_path, fm_path, filename))
+			if (filebox_deleter_handle_task_delete (fp_path, fm_path))
 			      g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
 			else
 			      g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("406 Not Acceptable"));
-
-			g_free (filename);
-			g_free (basename);
 		} else {
 			g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("403 Forbidden"));
 		}
 		hev_scgi_response_write_header (HEV_SCGI_RESPONSE (response), NULL);
 
+		g_free (pool_path);
+		g_free (meta_path);
+		g_free (filename);
+		g_free (basename);
 		g_free (pass);
+		g_free (mpass);
 		g_free (file_name);
 	} else {
 		g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("400 Bad Request"));
@@ -264,19 +272,12 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 }
 
 static gboolean
-filebox_deleter_handle_task_delete (const gchar *fp_path, const gchar *fm_path, const gchar *filename)
+filebox_deleter_handle_task_delete (const gchar *fp_path, const gchar *fm_path)
 {
-	gchar *pool_path, *meta_path;
 	gint pool_ret, meta_ret;
 
-	pool_path = g_build_filename (fp_path, filename, NULL);
-	meta_path = g_build_filename (fm_path, filename, NULL);
-
-	pool_ret = g_unlink (pool_path);
-	meta_ret = g_unlink (meta_path);
-
-	g_free (pool_path);
-	g_free (meta_path);
+	pool_ret = g_unlink (fp_path);
+	meta_ret = g_unlink (fm_path);
 
 	return 0 == (pool_ret | meta_ret);
 }
