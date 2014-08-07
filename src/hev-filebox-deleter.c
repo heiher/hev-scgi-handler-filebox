@@ -242,7 +242,7 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 		/* check pass */
 		if ((mpass && 0 == strcmp (mpass, pass)) || (0 == strcmp (SUPER_PASSWORD, pass))) {
 			/* unlink */
-			if (filebox_deleter_handle_task_delete (fp_path, fm_path))
+			if (filebox_deleter_handle_task_delete (pool_path, meta_path))
 			      g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
 			else
 			      g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("406 Not Acceptable"));
