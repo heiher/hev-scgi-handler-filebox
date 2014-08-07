@@ -44,28 +44,28 @@ G_DEFINE_TYPE (HevFileboxQuerier, hev_filebox_querier, G_TYPE_OBJECT);
 static void
 hev_filebox_querier_dispose (GObject *obj)
 {
-    HevFileboxQuerier *self = HEV_FILEBOX_QUERIER (obj);
-    HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
+	HevFileboxQuerier *self = HEV_FILEBOX_QUERIER (obj);
+	HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_querier_parent_class)->dispose (obj);
+	G_OBJECT_CLASS (hev_filebox_querier_parent_class)->dispose (obj);
 }
 
 static void
 hev_filebox_querier_finalize (GObject *obj)
 {
-    HevFileboxQuerier *self = HEV_FILEBOX_QUERIER (obj);
-    HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
+	HevFileboxQuerier *self = HEV_FILEBOX_QUERIER (obj);
+	HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	if(priv->config) {
 		g_key_file_unref (priv->config);
 		priv->config = NULL;
 	}
 
-    G_OBJECT_CLASS (hev_filebox_querier_parent_class)->finalize (obj);
+	G_OBJECT_CLASS (hev_filebox_querier_parent_class)->finalize (obj);
 }
 
 static GObject *
@@ -73,18 +73,17 @@ hev_filebox_querier_constructor (GType type,
             guint n,
             GObjectConstructParam *param)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return G_OBJECT_CLASS (hev_filebox_querier_parent_class)->
-        constructor (type, n, param);
+	return G_OBJECT_CLASS (hev_filebox_querier_parent_class)->constructor (type, n, param);
 }
 
 static void
 hev_filebox_querier_constructed (GObject *obj)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_querier_parent_class)->constructed (obj);
+	G_OBJECT_CLASS (hev_filebox_querier_parent_class)->constructed (obj);
 }
 
 static void
@@ -98,11 +97,11 @@ hev_filebox_querier_set_property(GObject *obj,
 
 	switch(prop_id) {
 	case PROP_CONFIG:
-			priv->config = g_key_file_ref (g_value_get_pointer(value));
-			break;
+		priv->config = g_key_file_ref (g_value_get_pointer(value));
+		break;
 	default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
-			break;
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+		break;
 	}
 }
 
@@ -117,25 +116,25 @@ hev_filebox_querier_get_property(GObject *obj,
 
 	switch(prop_id) {
 	case PROP_CONFIG:
-			g_value_set_pointer(value, priv->config);
-			break;
+		g_value_set_pointer(value, priv->config);
+		break;
 	default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
-			break;
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+		break;
 	}
 }
 
 static void
 hev_filebox_querier_class_init (HevFileboxQuerierClass *klass)
 {
-    GObjectClass *obj_class = G_OBJECT_CLASS (klass);
+	GObjectClass *obj_class = G_OBJECT_CLASS (klass);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    obj_class->constructor = hev_filebox_querier_constructor;
-    obj_class->constructed = hev_filebox_querier_constructed;
-    obj_class->dispose = hev_filebox_querier_dispose;
-    obj_class->finalize = hev_filebox_querier_finalize;
+	obj_class->constructor = hev_filebox_querier_constructor;
+	obj_class->constructed = hev_filebox_querier_constructed;
+	obj_class->dispose = hev_filebox_querier_dispose;
+	obj_class->finalize = hev_filebox_querier_finalize;
 
 	obj_class->set_property = hev_filebox_querier_set_property;
 	obj_class->get_property = hev_filebox_querier_get_property;
@@ -146,23 +145,23 @@ hev_filebox_querier_class_init (HevFileboxQuerierClass *klass)
 	g_object_class_install_properties(obj_class, N_PROPERTIES,
 				hev_filebox_querier_properties);
 
-    g_type_class_add_private (klass, sizeof (HevFileboxQuerierPrivate));
+	g_type_class_add_private (klass, sizeof (HevFileboxQuerierPrivate));
 }
 
 static void
 hev_filebox_querier_init (HevFileboxQuerier *self)
 {
-    HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
+	HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
 GObject *
 hev_filebox_querier_new (GKeyFile *config)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return g_object_new (HEV_TYPE_FILEBOX_QUERIER, "config", config, NULL);
+	return g_object_new (HEV_TYPE_FILEBOX_QUERIER, "config", config, NULL);
 }
 
 void
@@ -171,7 +170,7 @@ hev_filebox_querier_handle_async (HevFileboxQuerier *self, GObject *scgi_task,
 {
 	GTask *task = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	task = g_task_new (self, NULL, callback, user_data);
 	g_task_set_task_data (task, g_object_ref (scgi_task), (GDestroyNotify) g_object_unref);
@@ -183,7 +182,7 @@ gboolean
 hev_filebox_querier_handle_finish (HevFileboxQuerier *self,
 			GAsyncResult *result, GError **error)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
 
@@ -195,7 +194,7 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable)
 {
 	HevFileboxQuerier *self = HEV_FILEBOX_QUERIER (source_object);
-    HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
+	HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
 	GObject *scgi_task = task_data;
 	gboolean status = TRUE;
 	GObject *request = NULL;
@@ -208,7 +207,7 @@ filebox_querier_handle_task_handler (GTask *task, gpointer source_object,
 	GMatchInfo *match_info = NULL;
 	const gchar *request_uri = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
 	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
@@ -276,7 +275,7 @@ filebox_querier_handle_task_query_size (HevFileboxQuerier *self,
 	GFile *file = NULL;
 	GFileInfo *file_info = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	path = g_build_filename (fp_path, filename, NULL);
 	file = g_file_new_for_path (path);
@@ -305,7 +304,7 @@ filebox_querier_handle_task_query_meta (HevFileboxQuerier *self,
 	gchar *meta = NULL, *path = NULL;
 	GKeyFile *key_file = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	key_file = g_key_file_new ();
 	path = g_build_filename (fm_path, filename, NULL);
