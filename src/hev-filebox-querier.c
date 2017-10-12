@@ -46,9 +46,6 @@ G_DEFINE_TYPE (HevFileboxQuerier, hev_filebox_querier, G_TYPE_OBJECT);
 static void
 hev_filebox_querier_dispose (GObject *obj)
 {
-	HevFileboxQuerier *self = HEV_FILEBOX_QUERIER (obj);
-	HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
-
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	G_OBJECT_CLASS (hev_filebox_querier_parent_class)->dispose (obj);
@@ -153,8 +150,6 @@ hev_filebox_querier_class_init (HevFileboxQuerierClass *klass)
 static void
 hev_filebox_querier_init (HevFileboxQuerier *self)
 {
-	HevFileboxQuerierPrivate *priv = HEV_FILEBOX_QUERIER_GET_PRIVATE (self);
-
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
@@ -186,7 +181,7 @@ hev_filebox_querier_handle_finish (HevFileboxQuerier *self,
 {
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
+	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
 	return g_task_propagate_boolean (G_TASK (result), error);
 }
