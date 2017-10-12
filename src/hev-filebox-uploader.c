@@ -23,7 +23,7 @@ enum
 static GParamSpec *hev_filebox_uploader_properties[N_PROPERTIES] = { NULL };
 
 #define HEV_FILEBOX_UPLOADER_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-                HEV_TYPE_FILEBOX_UPLOADER, HevFileboxUploaderPrivate))
+		HEV_TYPE_FILEBOX_UPLOADER, HevFileboxUploaderPrivate))
 
 typedef struct _HevFileboxUploaderPrivate HevFileboxUploaderPrivate;
 
@@ -74,9 +74,7 @@ hev_filebox_uploader_finalize (GObject *obj)
 }
 
 static GObject *
-hev_filebox_uploader_constructor (GType type,
-            guint n,
-            GObjectConstructParam *param)
+hev_filebox_uploader_constructor (GType type, guint n, GObjectConstructParam *param)
 {
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
