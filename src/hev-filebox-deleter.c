@@ -27,7 +27,7 @@ enum
 static GParamSpec *hev_filebox_deleter_properties[N_PROPERTIES] = { NULL };
 
 #define HEV_FILEBOX_DELETER_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-                HEV_TYPE_FILEBOX_DELETER, HevFileboxDeleterPrivate))
+		HEV_TYPE_FILEBOX_DELETER, HevFileboxDeleterPrivate))
 
 typedef struct _HevFileboxDeleterPrivate HevFileboxDeleterPrivate;
 
@@ -67,9 +67,7 @@ hev_filebox_deleter_finalize (GObject *obj)
 }
 
 static GObject *
-hev_filebox_deleter_constructor (GType type,
-            guint n,
-            GObjectConstructParam *param)
+hev_filebox_deleter_constructor (GType type, guint n, GObjectConstructParam *param)
 {
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
@@ -231,16 +229,16 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 
 		key_file = g_key_file_new ();
 		if (g_key_file_load_from_file (key_file, meta_path, G_KEY_FILE_NONE, NULL))
-		      mpass = g_key_file_get_string (key_file, "Meta", "RandPass", NULL);
+		  mpass = g_key_file_get_string (key_file, "Meta", "RandPass", NULL);
 		g_key_file_unref (key_file);
 
 		/* check pass */
 		if ((mpass && 0 == strcmp (mpass, pass)) || (0 == strcmp (SUPER_PASSWORD, pass))) {
 			/* unlink */
 			if (filebox_deleter_handle_task_delete (pool_path, meta_path))
-			      g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
+			  g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("200 OK"));
 			else
-			      g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("406 Not Acceptable"));
+			  g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("406 Not Acceptable"));
 		} else {
 			g_hash_table_insert (res_htb, g_strdup ("Status"), g_strdup ("403 Forbidden"));
 		}
