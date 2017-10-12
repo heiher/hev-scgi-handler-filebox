@@ -17,27 +17,27 @@ G_BEGIN_DECLS
 
 #define HEV_TYPE_FILEBOX_DOWNLOADER (hev_filebox_downloader_get_type ())
 #define HEV_FILEBOX_DOWNLOADER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloader))
+				HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloader))
 #define HEV_IS_FILEBOX_DOWNLOADER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                HEV_TYPE_FILEBOX_DOWNLOADER))
+				HEV_TYPE_FILEBOX_DOWNLOADER))
 #define HEV_FILEBOX_DOWNLOADER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloaderClass))
+				HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloaderClass))
 #define HEV_IS_FILEBOX_DOWNLOADER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                HEV_TYPE_FILEBOX_DOWNLOADER))
+				HEV_TYPE_FILEBOX_DOWNLOADER))
 #define HEV_FILEBOX_DOWNLOADER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloaderClass))
+				HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloaderClass))
 
 typedef struct _HevFileboxDownloader HevFileboxDownloader;
 typedef struct _HevFileboxDownloaderClass HevFileboxDownloaderClass;
 
 struct _HevFileboxDownloader
 {
-    GObject parent_instance;
+	GObject parent_instance;
 };
 
 struct _HevFileboxDownloaderClass
 {
-    GObjectClass parent_class;
+	GObjectClass parent_class;
 };
 
 GType hev_filebox_downloader_get_type (void);

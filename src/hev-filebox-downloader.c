@@ -25,7 +25,7 @@ enum
 static GParamSpec *hev_filebox_downloader_properties[N_PROPERTIES] = { NULL };
 
 #define HEV_FILEBOX_DOWNLOADER_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-                HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloaderPrivate))
+				HEV_TYPE_FILEBOX_DOWNLOADER, HevFileboxDownloaderPrivate))
 
 typedef struct _HevFileboxDownloaderPrivate HevFileboxDownloaderPrivate;
 
@@ -46,44 +46,42 @@ G_DEFINE_TYPE (HevFileboxDownloader, hev_filebox_downloader, G_TYPE_OBJECT);
 static void
 hev_filebox_downloader_dispose (GObject *obj)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->dispose (obj);
+	G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->dispose (obj);
 }
 
 static void
 hev_filebox_downloader_finalize (GObject *obj)
 {
-    HevFileboxDownloader *self = HEV_FILEBOX_DOWNLOADER (obj);
-    HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
+	HevFileboxDownloader *self = HEV_FILEBOX_DOWNLOADER (obj);
+	HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	if(priv->config) {
 		g_key_file_unref (priv->config);
 		priv->config = NULL;
 	}
 
-    G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->finalize (obj);
+	G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->finalize (obj);
 }
 
 static GObject *
-hev_filebox_downloader_constructor (GType type,
-            guint n,
-            GObjectConstructParam *param)
+hev_filebox_downloader_constructor (GType type, guint n, GObjectConstructParam *param)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->
-        constructor (type, n, param);
+	return G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->
+		constructor (type, n, param);
 }
 
 static void
 hev_filebox_downloader_constructed (GObject *obj)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->constructed (obj);
+	G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->constructed (obj);
 }
 
 static void
@@ -127,14 +125,14 @@ hev_filebox_downloader_get_property(GObject *obj,
 static void
 hev_filebox_downloader_class_init (HevFileboxDownloaderClass *klass)
 {
-    GObjectClass *obj_class = G_OBJECT_CLASS (klass);
+	GObjectClass *obj_class = G_OBJECT_CLASS (klass);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    obj_class->constructor = hev_filebox_downloader_constructor;
-    obj_class->constructed = hev_filebox_downloader_constructed;
-    obj_class->dispose = hev_filebox_downloader_dispose;
-    obj_class->finalize = hev_filebox_downloader_finalize;
+	obj_class->constructor = hev_filebox_downloader_constructor;
+	obj_class->constructed = hev_filebox_downloader_constructed;
+	obj_class->dispose = hev_filebox_downloader_dispose;
+	obj_class->finalize = hev_filebox_downloader_finalize;
 
 	obj_class->set_property = hev_filebox_downloader_set_property;
 	obj_class->get_property = hev_filebox_downloader_get_property;
@@ -145,21 +143,21 @@ hev_filebox_downloader_class_init (HevFileboxDownloaderClass *klass)
 	g_object_class_install_properties(obj_class, N_PROPERTIES,
 				hev_filebox_downloader_properties);
 
-    g_type_class_add_private (klass, sizeof (HevFileboxDownloaderPrivate));
+	g_type_class_add_private (klass, sizeof (HevFileboxDownloaderPrivate));
 }
 
 static void
 hev_filebox_downloader_init (HevFileboxDownloader *self)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
 GObject *
 hev_filebox_downloader_new (GKeyFile *config)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return g_object_new (HEV_TYPE_FILEBOX_DOWNLOADER, "config", config, NULL);
+	return g_object_new (HEV_TYPE_FILEBOX_DOWNLOADER, "config", config, NULL);
 }
 
 void
@@ -168,7 +166,7 @@ hev_filebox_downloader_handle_async (HevFileboxDownloader *self, GObject *scgi_t
 {
 	GTask *task = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	task = g_task_new (self, NULL, callback, user_data);
 	g_task_set_task_data (task, g_object_ref (scgi_task), (GDestroyNotify) g_object_unref);
@@ -180,7 +178,7 @@ gboolean
 hev_filebox_downloader_handle_finish (HevFileboxDownloader *self,
 			GAsyncResult *result, GError **error)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
@@ -192,7 +190,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable)
 {
 	HevFileboxDownloader *self = HEV_FILEBOX_DOWNLOADER (source_object);
-    HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
+	HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
 	GObject *scgi_task = task_data;
 	gboolean status = TRUE;
 	GObject *request = NULL;
@@ -202,7 +200,7 @@ filebox_downloader_handle_task_handler (GTask *task, gpointer source_object,
 	GMatchInfo *match_info = NULL;
 	const gchar *request_uri = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	request = hev_scgi_task_get_request (HEV_SCGI_TASK (scgi_task));
 	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
@@ -234,7 +232,7 @@ static gboolean
 filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 			GObject *task, const gchar *fp_path, const gchar *filename)
 {
-    HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
+	HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
 	gboolean status = TRUE;
 	GObject *response = NULL;
 	GOutputStream *res_stream = NULL;
@@ -243,7 +241,7 @@ filebox_downloader_handle_task_down (HevFileboxDownloader *self,
 	GFile *file = NULL;
 	gboolean exists = FALSE;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	response = hev_scgi_task_get_response (HEV_SCGI_TASK (task));
 	res_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
@@ -344,7 +342,7 @@ filebox_downloader_handle_task_list (HevFileboxDownloader *self,
 	GFileEnumerator *file_enumerator = NULL;
 	GFileInfo *file_info = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	response = hev_scgi_task_get_response (HEV_SCGI_TASK (task));
 	res_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
