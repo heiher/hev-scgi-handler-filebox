@@ -25,7 +25,7 @@ enum
 static GParamSpec *hev_filebox_cleaner_properties[N_PROPERTIES] = { NULL };
 
 #define HEV_FILEBOX_CLEANER_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-                HEV_TYPE_FILEBOX_CLEANER, HevFileboxCleanerPrivate))
+		HEV_TYPE_FILEBOX_CLEANER, HevFileboxCleanerPrivate))
 
 typedef struct _HevFileboxCleanerPrivate HevFileboxCleanerPrivate;
 
@@ -47,18 +47,18 @@ G_DEFINE_TYPE (HevFileboxCleaner, hev_filebox_cleaner, G_TYPE_OBJECT);
 static void
 hev_filebox_cleaner_dispose (GObject *obj)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->dispose (obj);
+	G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->dispose (obj);
 }
 
 static void
 hev_filebox_cleaner_finalize (GObject *obj)
 {
-    HevFileboxCleaner *self = HEV_FILEBOX_CLEANER (obj);
-    HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE (self);
+	HevFileboxCleaner *self = HEV_FILEBOX_CLEANER (obj);
+	HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE (self);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	if (0 < priv->timeout_tag) {
 		g_source_remove (priv->timeout_tag);
@@ -70,18 +70,16 @@ hev_filebox_cleaner_finalize (GObject *obj)
 		priv->config = NULL;
 	}
 
-    G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->finalize (obj);
+	G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->finalize (obj);
 }
 
 static GObject *
-hev_filebox_cleaner_constructor (GType type,
-            guint n,
-            GObjectConstructParam *param)
+hev_filebox_cleaner_constructor (GType type, guint n, GObjectConstructParam *param)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->
-        constructor (type, n, param);
+	return G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->
+		constructor (type, n, param);
 }
 
 static void
@@ -91,14 +89,14 @@ hev_filebox_cleaner_constructed (GObject *obj)
 	HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE(self);
 	gint interval = 0;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	interval = g_key_file_get_integer (priv->config,
 				"Module", "CleanInterval", NULL);
 	priv->timeout_tag = g_timeout_add_seconds (interval,
 				cleaner_timeout_handler, self);
 
-    G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->constructed (obj);
+	G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->constructed (obj);
 }
 
 static void
@@ -142,14 +140,14 @@ hev_filebox_cleaner_get_property(GObject *obj,
 static void
 hev_filebox_cleaner_class_init (HevFileboxCleanerClass *klass)
 {
-    GObjectClass *obj_class = G_OBJECT_CLASS (klass);
+	GObjectClass *obj_class = G_OBJECT_CLASS (klass);
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    obj_class->constructor = hev_filebox_cleaner_constructor;
-    obj_class->constructed = hev_filebox_cleaner_constructed;
-    obj_class->dispose = hev_filebox_cleaner_dispose;
-    obj_class->finalize = hev_filebox_cleaner_finalize;
+	obj_class->constructor = hev_filebox_cleaner_constructor;
+	obj_class->constructed = hev_filebox_cleaner_constructed;
+	obj_class->dispose = hev_filebox_cleaner_dispose;
+	obj_class->finalize = hev_filebox_cleaner_finalize;
 
 	obj_class->set_property = hev_filebox_cleaner_set_property;
 	obj_class->get_property = hev_filebox_cleaner_get_property;
@@ -160,21 +158,21 @@ hev_filebox_cleaner_class_init (HevFileboxCleanerClass *klass)
 	g_object_class_install_properties(obj_class, N_PROPERTIES,
 				hev_filebox_cleaner_properties);
 
-    g_type_class_add_private (klass, sizeof (HevFileboxCleanerPrivate));
+	g_type_class_add_private (klass, sizeof (HevFileboxCleanerPrivate));
 }
 
 static void
 hev_filebox_cleaner_init (HevFileboxCleaner *self)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
 GObject *
 hev_filebox_cleaner_new (GKeyFile *config)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-    return g_object_new (HEV_TYPE_FILEBOX_CLEANER, "config", config, NULL);
+	return g_object_new (HEV_TYPE_FILEBOX_CLEANER, "config", config, NULL);
 }
 
 static gboolean
@@ -183,7 +181,7 @@ cleaner_timeout_handler (gpointer user_data)
 	HevFileboxCleaner *self = HEV_FILEBOX_CLEANER (user_data);
 	GTask *task = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	task = g_task_new (self, NULL, cleaner_task_ready_handler, NULL);
 	g_task_run_in_thread (task, cleaner_task_handler);
@@ -196,7 +194,7 @@ static void
 cleaner_task_ready_handler (GObject *source_object,
 			GAsyncResult *res, gpointer user_data)
 {
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	g_return_if_fail (g_task_is_valid (res, source_object));
 	g_task_propagate_boolean (G_TASK (res), NULL);
@@ -207,13 +205,13 @@ cleaner_task_handler (GTask *task, gpointer source_object,
 			gpointer task_data, GCancellable *cancellable)
 {
 	HevFileboxCleaner *self = HEV_FILEBOX_CLEANER (source_object);
-    HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE (self);
+	HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE (self);
 	gchar *fp_path = NULL, *fm_path = NULL;
 	GFile *file = NULL;
 	GFileEnumerator *file_enumerator = NULL;
 	GFileInfo *file_info = NULL;
 
-    g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	fp_path = g_key_file_get_string (priv->config, "Module", "FilePoolPath", NULL);
 	fm_path = g_key_file_get_string (priv->config, "Module", "FileMetaPath", NULL);
