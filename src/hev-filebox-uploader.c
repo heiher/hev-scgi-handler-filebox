@@ -52,9 +52,6 @@ G_DEFINE_TYPE (HevFileboxUploader, hev_filebox_uploader, G_TYPE_OBJECT);
 static void
 hev_filebox_uploader_dispose (GObject *obj)
 {
-	HevFileboxUploader *self = HEV_FILEBOX_UPLOADER (obj);
-	HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
-
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	G_OBJECT_CLASS (hev_filebox_uploader_parent_class)->dispose (obj);
@@ -159,8 +156,6 @@ hev_filebox_uploader_class_init (HevFileboxUploaderClass *klass)
 static void
 hev_filebox_uploader_init (HevFileboxUploader *self)
 {
-	HevFileboxUploaderPrivate *priv = HEV_FILEBOX_UPLOADER_GET_PRIVATE (self);
-
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
@@ -192,7 +187,7 @@ hev_filebox_uploader_handle_finish (HevFileboxUploader *self,
 {
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
+	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
 	return g_task_propagate_boolean (G_TASK (result), error);
 }
