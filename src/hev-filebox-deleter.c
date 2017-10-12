@@ -8,8 +8,10 @@
  ============================================================================
  */
 
-#include <string.h>
 #include <hev-scgi-1.0.h>
+#include <string.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include "hev-filebox-deleter.h"
 
@@ -43,9 +45,6 @@ G_DEFINE_TYPE (HevFileboxDeleter, hev_filebox_deleter, G_TYPE_OBJECT);
 static void
 hev_filebox_deleter_dispose (GObject *obj)
 {
-	HevFileboxDeleter *self = HEV_FILEBOX_DELETER (obj);
-	HevFileboxDeleterPrivate *priv = HEV_FILEBOX_DELETER_GET_PRIVATE (self);
-
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	G_OBJECT_CLASS (hev_filebox_deleter_parent_class)->dispose (obj);
@@ -150,8 +149,6 @@ hev_filebox_deleter_class_init (HevFileboxDeleterClass *klass)
 static void
 hev_filebox_deleter_init (HevFileboxDeleter *self)
 {
-	HevFileboxDeleterPrivate *priv = HEV_FILEBOX_DELETER_GET_PRIVATE (self);
-
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
@@ -183,7 +180,7 @@ hev_filebox_deleter_handle_finish (HevFileboxDeleter *self,
 {
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
+	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
 	return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -200,7 +197,6 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 	GHashTable *req_htb = NULL;
 	GObject *response = NULL;
 	GHashTable *res_htb = NULL;
-	GOutputStream *res_stream = NULL;
 	gchar *fp_path, *fm_path, *base_uri, pattern[256];
 	GRegex *regex = NULL;
 	GMatchInfo *match_info = NULL;
@@ -212,7 +208,6 @@ filebox_deleter_handle_task_handler (GTask *task, gpointer source_object,
 	req_htb = hev_scgi_request_get_header_hash_table (HEV_SCGI_REQUEST (request));
 	response = hev_scgi_task_get_response (HEV_SCGI_TASK (scgi_task));
 	res_htb = hev_scgi_response_get_header_hash_table (HEV_SCGI_RESPONSE (response));
-	res_stream = hev_scgi_response_get_output_stream (HEV_SCGI_RESPONSE (response));
 
 	fp_path = g_key_file_get_string (priv->config, "Module", "FilePoolPath", NULL);
 	fm_path = g_key_file_get_string (priv->config, "Module", "FileMetaPath", NULL);
