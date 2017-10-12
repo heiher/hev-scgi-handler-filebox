@@ -10,6 +10,8 @@
 
 #include <hev-scgi-1.0.h>
 #include <string.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include "hev-filebox-downloader.h"
 
@@ -44,9 +46,6 @@ G_DEFINE_TYPE (HevFileboxDownloader, hev_filebox_downloader, G_TYPE_OBJECT);
 static void
 hev_filebox_downloader_dispose (GObject *obj)
 {
-    HevFileboxDownloader *self = HEV_FILEBOX_DOWNLOADER (obj);
-    HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
-
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
     G_OBJECT_CLASS (hev_filebox_downloader_parent_class)->dispose (obj);
@@ -152,8 +151,6 @@ hev_filebox_downloader_class_init (HevFileboxDownloaderClass *klass)
 static void
 hev_filebox_downloader_init (HevFileboxDownloader *self)
 {
-    HevFileboxDownloaderPrivate *priv = HEV_FILEBOX_DOWNLOADER_GET_PRIVATE (self);
-
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
@@ -185,7 +182,7 @@ hev_filebox_downloader_handle_finish (HevFileboxDownloader *self,
 {
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-	g_return_val_if_fail (g_task_is_valid (result, self), NULL);
+	g_return_val_if_fail (g_task_is_valid (result, self), FALSE);
 
 	return g_task_propagate_boolean (G_TASK (result), error);
 }
