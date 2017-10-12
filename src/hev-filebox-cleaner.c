@@ -10,6 +10,8 @@
 
 #include <hev-scgi-1.0.h>
 #include <string.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include "hev-filebox-cleaner.h"
 
@@ -45,9 +47,6 @@ G_DEFINE_TYPE (HevFileboxCleaner, hev_filebox_cleaner, G_TYPE_OBJECT);
 static void
 hev_filebox_cleaner_dispose (GObject *obj)
 {
-    HevFileboxCleaner *self = HEV_FILEBOX_CLEANER (obj);
-    HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE (self);
-
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
     G_OBJECT_CLASS (hev_filebox_cleaner_parent_class)->dispose (obj);
@@ -167,8 +166,6 @@ hev_filebox_cleaner_class_init (HevFileboxCleanerClass *klass)
 static void
 hev_filebox_cleaner_init (HevFileboxCleaner *self)
 {
-    HevFileboxCleanerPrivate *priv = HEV_FILEBOX_CLEANER_GET_PRIVATE (self);
-
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 }
 
@@ -201,7 +198,7 @@ cleaner_task_ready_handler (GObject *source_object,
 {
     g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
-	g_return_val_if_fail (g_task_is_valid (res, source_object), NULL);
+	g_return_if_fail (g_task_is_valid (res, source_object));
 	g_task_propagate_boolean (G_TASK (res), NULL);
 }
 
@@ -226,7 +223,7 @@ cleaner_task_handler (GTask *task, gpointer source_object,
 	file_enumerator = g_file_enumerate_children (file,
 				G_FILE_ATTRIBUTE_STANDARD_NAME","G_FILE_ATTRIBUTE_STANDARD_TYPE,
 				G_FILE_QUERY_INFO_NONE, NULL, NULL);
-	while (file_info = g_file_enumerator_next_file (file_enumerator, NULL, NULL)) {
+	while ((file_info = g_file_enumerator_next_file (file_enumerator, NULL, NULL))) {
 		if (G_FILE_TYPE_REGULAR == g_file_info_get_file_type (file_info)) {
 			gchar *meta_path = NULL;
 			GKeyFile *meta = NULL;
