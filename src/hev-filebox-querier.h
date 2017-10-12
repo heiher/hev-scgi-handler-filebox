@@ -17,27 +17,27 @@ G_BEGIN_DECLS
 
 #define HEV_TYPE_FILEBOX_QUERIER (hev_filebox_querier_get_type ())
 #define HEV_FILEBOX_QUERIER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
-                HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerier))
+				HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerier))
 #define HEV_IS_FILEBOX_QUERIER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-                HEV_TYPE_FILEBOX_QUERIER))
+				HEV_TYPE_FILEBOX_QUERIER))
 #define HEV_FILEBOX_QUERIER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), \
-                HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerierClass))
+				HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerierClass))
 #define HEV_IS_FILEBOX_QUERIER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), \
-                HEV_TYPE_FILEBOX_QUERIER))
+				HEV_TYPE_FILEBOX_QUERIER))
 #define HEV_FILEBOX_QUERIER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), \
-                HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerierClass))
+				HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerierClass))
 
 typedef struct _HevFileboxQuerier HevFileboxQuerier;
 typedef struct _HevFileboxQuerierClass HevFileboxQuerierClass;
 
 struct _HevFileboxQuerier
 {
-    GObject parent_instance;
+	GObject parent_instance;
 };
 
 struct _HevFileboxQuerierClass
 {
-    GObjectClass parent_class;
+	GObjectClass parent_class;
 };
 
 GType hev_filebox_querier_get_type (void);

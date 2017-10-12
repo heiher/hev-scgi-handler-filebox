@@ -25,7 +25,7 @@ enum
 static GParamSpec *hev_filebox_querier_properties[N_PROPERTIES] = { NULL };
 
 #define HEV_FILEBOX_QUERIER_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-                HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerierPrivate))
+		HEV_TYPE_FILEBOX_QUERIER, HevFileboxQuerierPrivate))
 
 typedef struct _HevFileboxQuerierPrivate HevFileboxQuerierPrivate;
 
@@ -68,9 +68,7 @@ hev_filebox_querier_finalize (GObject *obj)
 }
 
 static GObject *
-hev_filebox_querier_constructor (GType type,
-            guint n,
-            GObjectConstructParam *param)
+hev_filebox_querier_constructor (GType type, guint n, GObjectConstructParam *param)
 {
 	g_debug ("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
